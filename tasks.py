@@ -22,7 +22,7 @@ def startPriceStreams( symbol, rediskeyname):
         print(price_data)
 
         price = price_data['data']['b']
-        if float(price) >=float(rediskeyname):
+        if float(price) <=float(rediskeyname):
             print("Stop now")
             twm.stop()
             print("target reached send takeprofits now")

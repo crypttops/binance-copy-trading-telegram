@@ -10,7 +10,7 @@ class Config:
     DEBUG = False
     TOKEN_EXPIRE_HOURS = 2
     REDIS_URL="redis://default:4sl26m0EmsdiEjUzjoOO@containers-us-west-4.railway.app:6162"
-    REDES_SUB_URL=""
+    REDES_SUB_URL="redis://default:H5kvgAhlqYVxNEEJ4JZF@containers-us-west-27.railway.app:7558"
     BOT_TOKEN="5165033127:AAFVExTGyVh8mH-5goKNV1xO9LCCalAcF0g"
     CELERY_BROKER_URL="redis://default:4sl26m0EmsdiEjUzjoOO@containers-us-west-4.railway.app:6162"
 
