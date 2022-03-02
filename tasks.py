@@ -28,7 +28,7 @@ def startPriceStreams( symbol, rediskeyname):
         print(price_data)
 
         price = price_data['data']['b']
-        if float(price) >=float(redis_price) and redis_side="BUY":
+        if float(price) >=float(redis_price) and redis_side=="BUY":
             print("Stop now")
             twm.stop()
             print("target reached send takeprofits now")
@@ -65,7 +65,7 @@ def startPriceStreams( symbol, rediskeyname):
             
                 sendMessage(telegram_id, sl_resp)
               
-        if float(price) <=float(redis_price) and redis_side="SELL":
+        if float(price) <=float(redis_price) and redis_side=="SELL":
             print("Stop now")
             twm.stop()
             print("target reached send takeprofits now")
