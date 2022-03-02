@@ -28,44 +28,7 @@ def startPriceStreams( symbol, rediskeyname):
         print(price_data)
 
         price = price_data['data']['b']
-        if float(price) >=float(redis_price) and redis_side=="BUY":
-            print("Stop now")
-            twm.stop()
-            print("target reached send takeprofits now")
-            details = pickle.loads(red.get(rediskeyname))
-            print("The are the details to use to place the orders", details)
-            for user_order_details in details:
-                api_key =user_order_details['key']
-                api_secret = user_order_details['secret']
-                client = BinanceFuturesOps(api_key=api_key, api_secret=api_secret, trade_symbol=user_order_details['position']['symbol'])
-                telegram_id = user_order_details['telegram_id']
-                tp_params = user_order_details['take_profit_orders']
-                tp_resp =''
-                for tp_param in tp_params:
-                    print("The type of type object", type(tp_param))
-                    try:
-                        print("tp_param to send order", tp_param)
-                        resp = client.sendOrder(tp_param)
-                        bot_resp = f"[Binance Futures USDT-M]\n{tp_param['symbol']}/USDT TakeProfit {tp_param['side'].lower()} order placed @{tp_param['price']}\n\n"
-                    except Exception as e:
-                        print("The takeprofit error", str(e))
-                        bot_resp = f"[Binance Futures USDT-M]\n{tp_param['symbol']}/USDT TakeProfit {tp_param['side'].lower()} @{tp_param['price']}Order Failed\nError:{str(e)}\n\n"
-                    tp_resp+=bot_resp
-                sendMessage(telegram_id, tp_resp)
-
-                #send stop loss orders
-                sl_params = user_order_details["stop_loss_order"]
-                try:
-                    resp = client.sendOrder(sl_params)
-                    sl_resp = f"[Binance Futures USDT-M]\n{sl_params['symbol']}/USDT StopLoss {sl_params['side'].lower()} order placed @{sl_params['price']}\n\n"
-
-                except Exception as e:
-                    print("The sl error", str(e))
-                    sl_resp = f"[Binance Futures USDT-M]\n{sl_params['symbol']}/USDT StopLoss {sl_params['side'].lower()} @{sl_params['price']}Order Failed\nError:{str(e)}\n\n"
-            
-                sendMessage(telegram_id, sl_resp)
-
-        if float(price) <=float(redis_price) and redis_side=="SELL":
+        if float(price) >=float(redis_price) and redis_side="BUY":
             print("Stop now")
             twm.stop()
             print("target reached send takeprofits now")
@@ -102,7 +65,42 @@ def startPriceStreams( symbol, rediskeyname):
             
                 sendMessage(telegram_id, sl_resp)
               
+        if float(price) <=float(redis_price) and redis_side="SELL":
+            print("Stop now")
+            twm.stop()
+            print("target reached send takeprofits now")
+            details = pickle.loads(red.get(rediskeyname))
+            print("The are the details to use to place the orders", details)
+            for user_order_details in details:
+                api_key =user_order_details['key']
+                api_secret = user_order_details['secret']
+                client = BinanceFuturesOps(api_key=api_key, api_secret=api_secret, trade_symbol=user_order_details['position']['symbol'])
+                telegram_id = user_order_details['telegram_id']
+                tp_params = user_order_details['take_profit_orders']
+                tp_resp =''
+                for tp_param in tp_params:
+                    print("The type of type object", type(tp_param))
+                    try:
+                        print("tp_param to send order", tp_param)
+                        resp = client.sendOrder(tp_param)
+                        bot_resp = f"[Binance Futures USDT-M]\n{tp_param['symbol']}/USDT TakeProfit {tp_param['side'].lower()} order placed @{tp_param['price']}\n\n"
+                    except Exception as e:
+                        print("The takeprofit error", str(e))
+                        bot_resp = f"[Binance Futures USDT-M]\n{tp_param['symbol']}/USDT TakeProfit {tp_param['side'].lower()} @{tp_param['price']}Order Failed\nError:{str(e)}\n\n"
+                    tp_resp+=bot_resp
+                sendMessage(telegram_id, tp_resp)
 
+                #send stop loss orders
+                sl_params = user_order_details["stop_loss_order"]
+                try:
+                    resp = client.sendOrder(sl_params)
+                    sl_resp = f"[Binance Futures USDT-M]\n{sl_params['symbol']}/USDT StopLoss {sl_params['side'].lower()} order placed @{sl_params['price']}\n\n"
+
+                except Exception as e:
+                    print("The sl error", str(e))
+                    sl_resp = f"[Binance Futures USDT-M]\n{sl_params['symbol']}/USDT StopLoss {sl_params['side'].lower()} @{sl_params['price']}Order Failed\nError:{str(e)}\n\n"
+            
+                sendMessage(telegram_id, sl_resp)
 
 
     twm.start()
