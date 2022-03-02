@@ -1,0 +1,1 @@
+from .botconfig import BotConfigsModel
