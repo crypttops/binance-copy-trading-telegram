@@ -99,7 +99,7 @@ telegram_id = ''
 first_name = ''
 second_name  = ''
 
-bot_token ="5273795346:AAE-rmD7tHJS5LXD6fMz3pVUA3up0pXlPZU"
+bot_token ="5165033127:AAFVExTGyVh8mH-5goKNV1xO9LCCalAcF0g"
 
 update1 = {}
 print("------------UPDATE 1- INIT----------------", update1)
@@ -200,7 +200,7 @@ def verifyApiData(update: Update, context: CallbackContext, level, user_data):
     buy = ''
     sell = ''
     secret = ''
-    bot_token ='5273795346:AAE-rmD7tHJS5LXD6fMz3pVUA3up0pXlPZU'
+    bot_token ='5165033127:AAFVExTGyVh8mH-5goKNV1xO9LCCalAcF0g'
     user, telegram_id, first_name, second_name = getUserDetails(update, context)
     vvery12 = telegram_id
     for person in user_data[level]:
@@ -303,7 +303,7 @@ def verifyApiData(update: Update, context: CallbackContext, level, user_data):
                 text3 = 'please verify your Binance keys before proceeding to trade.\n'
                 textp = text1 + text2 + text3
 
-        return textp
+            return textp
 
 
 def swapTrade(update: Update, context: CallbackContext, level, user_data):
@@ -315,7 +315,7 @@ def swapTrade(update: Update, context: CallbackContext, level, user_data):
     buy = ''
     sell = ''
     secret = ''
-    bot_token ='5273795346:AAE-rmD7tHJS5LXD6fMz3pVUA3up0pXlPZU'
+    bot_token ='5165033127:AAFVExTGyVh8mH-5goKNV1xO9LCCalAcF0g'
     user, telegram_id, first_name, second_name = getUserDetails(update, context)
     vvery12 = telegram_id
     for person in user_data[level]:
@@ -368,7 +368,7 @@ def show_data(update: Update, context: CallbackContext) -> str:
     print("The execution is still on show data")
     textp = "djhsofddu"
    
-    bot_token ='5273795346:AAE-rmD7tHJS5LXD6fMz3pVUA3up0pXlPZU'
+    bot_token ='5165033127:AAFVExTGyVh8mH-5goKNV1xO9LCCalAcF0g'
     user, telegram_id, first_name, second_name = getUserDetails(update, context)
     user_data = context.user_data
     bot_chatID = str(telegram_id)
@@ -893,7 +893,7 @@ def start_without_shipping_callback(update: Update, context: CallbackContext) ->
     # select a payload just for you to recognize its the donation from your bot
     payload = "Custom-Payload"
     # In order to get a provider_token see https://core.telegram.org/bots/payments#getting-a-token
-    provider_token = "284685063:TEST:ZTVlNDQ4Mjg2NzVm"
+    provider_token = "284685063:TEST:YjBiNjE5YTQ0YWZm"
     currency = "USD"
     # price in dollars
     price = 15
