@@ -167,7 +167,7 @@ def user_counter():
             order_data = json.loads(signal_data['data'])
             data = orderDataTemplateProcessor(order_data) #missing parts in amount, takeprofit amounts and stop loss amounts
             symbolredis =data['position']['symbol']
-            priceredis = str(data['position']['price'])
+            priceredis = str(data['position']['price'])+"-"+str(data['position']['side'])
 
 
             if signal_data is not False:
@@ -212,8 +212,8 @@ def user_counter():
                     print(all_results)
                     #save the orders to redis and start monitoring the price changes immediately
 
-                    red.set(str(all_results[0]['position']['price']), pickle.dumps(all_results))
-                    task_instance = startPriceStreams.apply_async(args=(symbolredis,priceredis ))
+                    red.set(str(priceredis), pickle.dumps(all_results))
+                    task_instance = startPriceStreams.apply_async(args=(symbolredis, priceredis ))
                     print(task_instance)
 
 
