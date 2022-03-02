@@ -146,11 +146,7 @@ def send_orders(api_key, api_secret, qty, data, telegram_id):
         print("The position Error", str(e))
         position_resp=f"[Binance Futures USDT-M]\n{position_params['symbol']}/USDT Order Failed\nError:{str(e)}"
         sendMessage(telegram_id, position_resp )
-        results = tps_n_sls(data, qty)
-        print("results", results)
-        results.update({"key":api_key, "secret":api_secret,"telegram_id":telegram_id })
-        print("results final orint", results)
-        return results
+        return None
 
         
 
@@ -207,8 +203,8 @@ def user_counter():
                         api_secret=user.secret
                         amount=user.amount
                         resp =send_orders(api_key,api_secret,amount, data, user.telegram_id)
-                        print(resp)
-                        all_results.append(resp)
+                        if resp is not None:
+                            all_results.append(resp)
                     print(all_results)
                     #save the orders to redis and start monitoring the price changes immediately
 
