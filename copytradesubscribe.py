@@ -15,6 +15,7 @@ from config import Config
 from tasks import startPriceStreams
 
 red = redis.from_url(Config.REDIS_URL)
+redsub= redis.from_url(Config.REDES_SUB_URL)
 bot_token = Config.BOT_TOKEN
 
 Data =[]
@@ -158,7 +159,7 @@ def send_orders(api_key, api_secret, qty, data, telegram_id):
     
 def user_counter():
   pass
-  sub = red.pubsub()
+  sub = redsub.pubsub()
   sub.subscribe('smart-signals')
   for signal_data in sub.listen():
       if signal_data is not None and isinstance(signal_data, dict):
