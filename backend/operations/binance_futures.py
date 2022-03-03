@@ -105,6 +105,17 @@ class BinanceFuturesOps(BinanceClient):
         else:
             return self.is_authentic
 
+    def checkPositionInfo(self):
+        if self.is_authentic == True:
+            res = self.futures_position_information()
+            if res == None or res == []:
+                return False
+            else:
+                return res
+        else:
+            return self.is_authentic
+        
+
     def checkAllOrders(self):
         params = {'symbol': self.trade_symbol}
 
