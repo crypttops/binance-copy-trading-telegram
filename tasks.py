@@ -60,6 +60,8 @@ def startPriceStreams( symbol, rediskeyname, price_state):
                 sl_resp = f"[Binance Futures USDT-M]\n{sl_params['symbol']}/USDT StopLoss {sl_params['side'].lower()} @{sl_params['price']}Order Failed\nError:{str(e)}\n\n"
         
             sendMessage(telegram_id, sl_resp)
+        red.delete(rediskeyname)
+        print(f"Done processing deleting cache for {rediskeyname} from memory" )
 
     def handle_socket_message(price_data):
         print(price_data)
