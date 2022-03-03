@@ -4,11 +4,11 @@ from backend.operations.binance_futures import BinanceFuturesOps
 from db import db
 
 def getAllOpenOrders(telegram_id):
-    user = db.session.query(BotConfigsModel).filter_by(telegram_id=telegram_id).first()
+    user = db.session.query(BotConfigsModel).filter_by(telegram_id=str(telegram_id)).first()
     client = BinanceFuturesOps(api_key=user.key, api_secret=user.secret, trade_symbol="BTCUSDT")
     open_orders = client.checkAllOPenOrders()
     if not open_orders:
-        return "You have no open positions"
+        return "You have no open orders"
     processed =[]
     for order in open_orders:
         data = {
@@ -18,13 +18,14 @@ def getAllOpenOrders(telegram_id):
                 "reduceOnly":order["reduceOnly"]  
               }
         processed.append(data)
-    print(json.dumps(processed, indent=4))
+    # print(json.dumps(processed, indent=4))
     return json.dumps(processed, indent=4)
 
 def getAllOpenPositions(telegram_id):
-    user = db.session.query(BotConfigsModel).filter_by(telegram_id=telegram_id).first()
+    user = db.session.query(BotConfigsModel).filter_by(telegram_id=str(telegram_id)).first()
     client = BinanceFuturesOps(api_key=user.key, api_secret=user.secret, trade_symbol="BTCUSDT")
     position = client.checkPositionInfo()
+    # print(position)
     if not position:
         return "You have no open positions"
     processed =[]
@@ -39,5 +40,7 @@ def getAllOpenPositions(telegram_id):
             processed.append(data)
 
     
-    print(json.dumps(processed, indent=4))
+    if processed == []:
+        return "You have no open positions"
+
     return json.dumps(processed, indent=4)

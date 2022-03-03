@@ -4,14 +4,21 @@ from datetime import datetime
 
 class BotConfigsModel(BaseClass, db.Model):
     __tablename__="botconfigs"
-    telegram_id:int
+    id:int
+    telegram_id:str
     key:str
     secret:str
     amount:float
+    leverage:int
     registered_on:str
     updated_on:str
-
-    telegram_id = db.Column(db.Integer, primary_key=True)
+    subscribed:bool
+    subscription_type:str
+    subscription_start_date:str
+    subscription_end_date:str
+    
+    id =db.Column(db.Integer, primary_key=True, autoincrement= True)
+    telegram_id = db.Column(db.String, nullable=False)
     key = db.Column(db.Text, unique=True, nullable=False)
     secret = db.Column(db.Text, unique=True, nullable=False)
     amount = db.Column(db.Float(), nullable=True)

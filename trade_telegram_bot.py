@@ -222,7 +222,7 @@ def verifyApiData(update: Update, context: CallbackContext, level, user_data):
                 print("account balance", account_balance)
                 with app.app_context():
                     print("here-------------------------------------------------------")
-                    exists = bool(db.session.query(BotConfigsModel).filter_by(telegram_id = int(telegram_id)).first())
+                    exists = bool(db.session.query(BotConfigsModel).filter_by(telegram_id = str(telegram_id)).first())
                     print("existance", exists)
                     if exists:
                         db.session.query(BotConfigsModel).filter_by(telegram_id=telegram_id).update({"key":api_key, "secret":api_secret})
@@ -274,7 +274,7 @@ def verifyApiData(update: Update, context: CallbackContext, level, user_data):
 
                         text2 = 'Your Binance data has been Verified. You can proceed and start trading \n'
                                                     
-                        text3 = 'Binance ID is valid, you can proceed to swap trading \n'
+                        text3 = 'Binance ID is valid, you can proceed to trading \n'
                         
                         # update.callback_query.edit_message_text(text=(text1 + text2 + text3))
 
@@ -334,7 +334,7 @@ def swapTrade(update: Update, context: CallbackContext, level, user_data):
                 try:
                     json.loads(swap_payload)
                     with app.app_context():
-                        bclient = dbOperations.getBinaceClient(int(telegram_id))
+                        bclient = dbOperations.getBinaceClient(str(telegram_id))
                     textp = binaceSwapOperations.performSwap(bclient, json.loads(swap_payload))
                 except:
                     textp = "Invalid Swap message format"
@@ -396,7 +396,7 @@ def show_data(update: Update, context: CallbackContext) -> str:
         update.callback_query.edit_message_text(text=textp, reply_markup=keyboard)  
         return SHOWING
 
-    elif level==CHILDREN:
+    if level==CHILDREN:
         people = user_data.get(level)
         for person in user_data[level]:
             if person[GENDER] == MALE:  
@@ -441,7 +441,8 @@ def show_data(update: Update, context: CallbackContext) -> str:
                 buttons = [[InlineKeyboardButton(text='Back', callback_data=str(END))]]
                 keyboard = InlineKeyboardMarkup(buttons)
                 update.callback_query.answer()
-                update.callback_query.edit_message_text(text=textp, reply_markup=keyboard)  
+                update.callback_query.edit_message_text(text=textp, reply_markup=keyboard)
+                textp=''  
                 
         return SHOWING
     else:
@@ -581,7 +582,7 @@ def get_all_swaps(update: Update, context: CallbackContext) -> None:
     user, telegram_id, first_name, second_name = getUserDetails(update, context)
 
     # with app.app_context():
-    #     bcient =dbOperations.getBinaceClient(int(telegram_id))
+    #     bcient =dbOperations.getBinaceClient(str(telegram_id))
     #     all_swaps = binaceSwapOperations.getAllSWaps(bcient)
     #     print(all_swaps)
 
@@ -671,12 +672,12 @@ def get_swap_history(update: Update, context: CallbackContext) -> None:
     # all the swap history operations here 
     user, telegram_id, first_name, second_name = getUserDetails(update, context)
     with app.app_context():
-        user = db.session.query(Telegram).filter_by(telegramid=int(telegram_id)).first()
+        user = db.session.query(Telegram).filter_by(telegramid=str(telegram_id)).first()
     if user == None or user.verified !="Yes": 
         res = "Your api data are not authentic, verify your Binance keys to continue using this bot."
     else:    
         with app.app_context():
-            bsclient= dbOperations.getBinaceClient(int(telegram_id))
+            bsclient= dbOperations.getBinaceClient(str(telegram_id))
         res = binaceSwapOperations.getSwapHistory(bsclient)
 
     buttons = [
@@ -1111,10 +1112,10 @@ def ask_for_input2(update: Update, context: CallbackContext) -> None:
             user = db.session.query(Telegram).filter_by(telegramid=telegram_id).first()
             # if token in toList:
             if authenticated == True and user.verified=="Yes": 
-                bot_user = db.session.query(Telegram).filter_by(telegramid=int(telegram_id)).first()
+                bot_user = db.session.query(Telegram).filter_by(telegramid=str(telegram_id)).first()
                 if bot_user.auth_token ==None:
                     auth_token = security.generate_auth_token()
-                    db.session.query(Telegram).filter_by(telegramid=int(telegram_id)).update({"auth_token":auth_token})
+                    db.session.query(Telegram).filter_by(telegramid=str(telegram_id)).update({"auth_token":auth_token})
                     db.session.commit()
                 else:
                     auth_token = bot_user.auth_token    
@@ -1147,8 +1148,8 @@ def ask_for_input2(update: Update, context: CallbackContext) -> None:
             user = db.session.query(Telegram).filter_by(telegramid=telegram_id).first()
             # if token in toList:
             if authenticated == True and user.verified=="Yes": 
-                bot_user = db.session.query(Telegram).filter_by(telegramid=int(telegram_id)).first()
-                db.session.query(Telegram).filter_by(telegramid=int(telegram_id)).update({"auth_token":auth_token})
+                bot_user = db.session.query(Telegram).filter_by(telegramid=str(telegram_id)).first()
+                db.session.query(Telegram).filter_by(telegramid=str(telegram_id)).update({"auth_token":auth_token})
                 db.session.commit()
                     
 
@@ -1192,7 +1193,7 @@ def swapTradeProcessor(update: Update, context: CallbackContext):
     print("printing text",swap_payload)
     user, telegram_id, first_name, second_name = getUserDetails(update, context)
     with app.app_context():
-        user = db.session.query(Telegram).filter_by(telegramid=int(telegram_id)).first()
+        user = db.session.query(Telegram).filter_by(telegramid=str(telegram_id)).first()
     if user == None or user.verified !="Yes": 
         textp = "Your api data are not authentic, verify your Binance keys to continue using this bot."
     else:    
@@ -1203,7 +1204,7 @@ def swapTradeProcessor(update: Update, context: CallbackContext):
             try:
                 json.loads(swap_payload)
                 with app.app_context():
-                    bclient = dbOperations.getBinaceClient(int(telegram_id))
+                    bclient = dbOperations.getBinaceClient(str(telegram_id))
                 textp = binaceSwapOperations.performSwap(bclient, json.loads(swap_payload))
             except:
                 textp = "Invalid Swap message format"

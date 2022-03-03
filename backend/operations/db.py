@@ -4,7 +4,7 @@ from backend.models import BotConfigsModel
 def getConfigs(telegram_id):
     """Get configuration of a single user"""
 
-    configs = db.session.query(BotConfigsModel).filter_by(telegram_id=telegram_id).first()
+    configs = db.session.query(BotConfigsModel).filter_by(telegram_id=str(telegram_id)).first()
     if configs:
         return configs
     else:
@@ -17,13 +17,13 @@ def getAllUserConfigs():
 
 def dbupdate(telegram_id, data:Dict):
     try:
-        db.session.query(BotConfigsModel).filter_by(telegram_id=telegram_id).update(data)
+        db.session.query(BotConfigsModel).filter_by(telegram_id=str(telegram_id)).update(data)
         db.session.commit()
         return None, True
     except Exception as e:
         return str(e), False
 def checkSubscriptionStatus(telegram_id):
-    user = db.session.query(BotConfigsModel).filter_by(telegram_id=telegram_id).first()
+    user = db.session.query(BotConfigsModel).filter_by(telegram_id=str(telegram_id)).first()
     if user.subscribed ==True:
         return True, user.subscription_type
     else:
