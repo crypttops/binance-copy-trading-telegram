@@ -189,7 +189,8 @@ class BinanceFuturesOps(BinanceClient):
         """Process the values of Limit order"""
         print("the data klnkls", params)
         price = params["price"]
-        quantity = params["quantity"]
+        quantity =self.round_decimals_down(params["quantity"], self.qtyPrecision)
+        # quantity = params["quantity"]
         return {"timeInForce": self.timeInForce, "price": price, "quantity": quantity}
 
     def takeProfitOrder(self, params):
