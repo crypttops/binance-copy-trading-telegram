@@ -2,7 +2,7 @@
 
 from datetime import datetime, timedelta
 from telegram import LabeledPrice, ShippingOption
-from backend.operations.binance import getAllOpenPositions
+from backend.operations.binance import getAllOpenOrders, getAllOpenPositions
 from backend.operations.db import checkSubscriptionStatus, dbupdate
 from backend.utils.binance.client import Client as BinanceSpotClient
 from backend.utils import security
@@ -409,6 +409,40 @@ def show_data(update: Update, context: CallbackContext) -> str:
                 keyboard = InlineKeyboardMarkup(buttons)
                 update.callback_query.answer()
                 update.callback_query.edit_message_text(text=textp, reply_markup=keyboard)  
+            if person[GENDER]==COPYTRADE:
+                amount = person.get(AGE, None)
+                leverage =person.get(LEVERAGE, None)
+
+
+                with app.app_context():
+                    status, subscription_type =checkSubscriptionStatus(telegram_id)
+                    if status==False:
+                        textp = "Update declined, You have no active subscription"
+                    else:
+                        textp=''
+                        if amount is not None:
+                            try:
+                                float(amount)
+                                dbupdate(telegram_id,{'amount':amount})
+                                textp+="Amount updated successifully\n"
+                            except Exception as e:
+                                textp += "Invalid amount, try again\n"
+                        if leverage is not None:
+                            try:
+                                int(leverage)
+                                dbupdate(telegram_id,{'leverage':leverage})
+                                textp+="Leverage updated successifully\n"
+                            except Exception as e:
+                                textp += "Invalid leverage, try again\n"
+                        if textp=='':
+                            textp="No Entry provided"
+
+
+                buttons = [[InlineKeyboardButton(text='Back', callback_data=str(END))]]
+                keyboard = InlineKeyboardMarkup(buttons)
+                update.callback_query.answer()
+                update.callback_query.edit_message_text(text=textp, reply_markup=keyboard)  
+                
         return SHOWING
     else:
         print("The level", level)
@@ -792,11 +826,16 @@ def select_feature3(update: Update, context: CallbackContext) -> None:
             InlineKeyboardButton(text='Subscriptions', callback_data=str(SUBSCRIPTIONS)),
         ], 
         [
-            # InlineKeyboardButton(text='set Leverage', callback_data=str(LEVERAGE)),
+            
             InlineKeyboardButton(text='set amount', callback_data=str(AGE)),
+            InlineKeyboardButton(text='set Leverage', callback_data=str(LEVERAGE))
         ],
         [
             InlineKeyboardButton(text='check Positions', callback_data=str(POSITION)),
+            InlineKeyboardButton(text='check Orders', callback_data=str(NAME)),
+            
+        ],
+        [
             InlineKeyboardButton(text='Close', callback_data=str(CLOSE)),
         ],
         [
@@ -1025,23 +1064,34 @@ def ask_for_input3(update: Update, context: CallbackContext) -> None:
     text="update feature"
     """Prompt user to input data for selected feature."""
     context.user_data[CURRENT_FEATURE] = update.callback_query.data
-    if context.user_data[CURRENT_FEATURE] == AGE:
-        print("Selected amount")
-        with app.app_context():
+    # if context.user_data[CURRENT_FEATURE] == AGE:
+    #     print("Selected amount")
+    #     with app.app_context():
             
-            pass
-    if context.user_data[CURRENT_FEATURE] == LEVERAGE:
-        print("Selected leverage")
-    if context.user_data[CURRENT_FEATURE] == CLOSE:
-        print("close orders")
+    #         pass
+    # if context.user_data[CURRENT_FEATURE] == LEVERAGE:
+    #     print("Selected leverage")
+    # if context.user_data[CURRENT_FEATURE] == CLOSE:
+    #     print("close orders")
     if context.user_data[CURRENT_FEATURE]==POSITION:
         with app.app_context():
             data = getAllOpenPositions(telegram_id)
-        text=str(data)
-  
-
-    update.callback_query.answer()
-    update.callback_query.edit_message_text(text=text)
+        textp=str(data)
+        buttons = [[InlineKeyboardButton(text='Back', callback_data=str(ENDMANUAL))]]
+        keyboard = InlineKeyboardMarkup(buttons)
+        update.callback_query.answer()
+        update.callback_query.edit_message_text(text=textp, reply_markup=keyboard)
+    elif context.user_data[CURRENT_FEATURE]==NAME:
+        with app.app_context():
+            data = getAllOpenOrders(telegram_id)
+        textp=str(data)
+        buttons = [[InlineKeyboardButton(text='Back', callback_data=str(ENDMANUAL))]]
+        keyboard = InlineKeyboardMarkup(buttons)
+        update.callback_query.answer()
+        update.callback_query.edit_message_text(text=textp, reply_markup=keyboard)
+    else:   
+        update.callback_query.answer()
+        update.callback_query.edit_message_text(text=text)
     
     return TYPING3
 
@@ -1191,17 +1241,17 @@ def save_input3(update: Update, context: CallbackContext) -> None:
     """Save input for feature and return to feature selection."""
     user_data = context.user_data
     user_data[FEATURES][user_data[CURRENT_FEATURE]] = update.message.text
-    if context.user_data[CURRENT_FEATURE] == AGE:
-        amount= user_data[FEATURES][user_data[CURRENT_FEATURE]]
-        with app.app_context():
-            status, subscription_type =checkSubscriptionStatus(telegram_id)
-            if status==False:
-                text = "You have no active subscription"
-                print(text)
-            else:
+    # if context.user_data[CURRENT_FEATURE] == AGE:
+    #     amount= user_data[FEATURES][user_data[CURRENT_FEATURE]]
+    #     with app.app_context():
+    #         status, subscription_type =checkSubscriptionStatus(telegram_id)
+    #         if status==False:
+    #             text = "You have no active subscription"
+    #             print(text)
+    #         else:
             
-                dbupdate(telegram_id,{'amount':amount})
-                print("Updated amount")
+    #             dbupdate(telegram_id,{'amount':amount})
+    #             print("Updated amount")
 
     user_data[START_OVER] = True
     

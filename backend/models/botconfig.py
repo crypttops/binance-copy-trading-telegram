@@ -15,6 +15,7 @@ class BotConfigsModel(BaseClass, db.Model):
     key = db.Column(db.Text, unique=True, nullable=False)
     secret = db.Column(db.Text, unique=True, nullable=False)
     amount = db.Column(db.Float(), nullable=True)
+    leverage = db.Column(db.Integer, nullable=False, default=20)
     registered_on = db.Column(db.DateTime, nullable=True)
     subscribed= db.Column(db.Boolean, default=False)
     subscription_type=db.Column(db.String, nullable=True)
