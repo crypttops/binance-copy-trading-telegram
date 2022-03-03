@@ -10,6 +10,7 @@ from app import app
 from backend.operations.bot import sendMessage
 from backend.operations.db import getAllUserConfigs
 import redis
+from backend.operations.price import convert_usdt_to_base_asset, get_last_price_ticker
 
 from config import Config
 from tasks import startPriceStreams
@@ -197,11 +198,20 @@ def user_counter():
 
 
                     # without threads implementation
+
+                    # check where is the price of the position from the entry
+                    last_price = get_last_price_ticker(symbolredis)
+                    if float(last_price)>=float(data['position']['price']):
+                        price_state ="ETOP"#above the entry
+                    else:
+                        price_state="ELOW"#below the entry
+
                     all_results =[]
                     for user in users:
                         api_key =user.key
                         api_secret=user.secret
-                        amount=user.amount
+                        leverage=20
+                        amount=convert_usdt_to_base_asset(symbolredis, user.amount, leverage)
                         resp =send_orders(api_key,api_secret,amount, data, user.telegram_id)
                         if resp is not None:
                             all_results.append(resp)
@@ -209,7 +219,7 @@ def user_counter():
                     #save the orders to redis and start monitoring the price changes immediately
 
                     red.set(str(priceredis), pickle.dumps(all_results))
-                    task_instance = startPriceStreams.apply_async(args=(symbolredis, priceredis ))
+                    task_instance = startPriceStreams.apply_async(args=(symbolredis, priceredis,price_state))
                     print(task_instance)
 
 
