@@ -171,7 +171,19 @@ def start(update: Update, context: CallbackContext) -> None:
     else:
        
         update.message.reply_text(
-            'Hello, Welcome to Binance Bot'
+            'Hello, Welcome to Binance premium trading bot.\nIf you do not have a binance account use the the link below to open account with binance\n'
+            'https://accounts.binance.me/en/register?ref=29337156\n'
+            'After opening an account with binance use the link below to create your api key and secret \n'
+            'https://www.binance.com/en/my/settings/api-management\n'
+            'On the same window where there is Api key and secret are generated, look for Edit button and click it,then look for an option to enable futures option and click it by ticking the box on top and click SAVE.\n'
+            'If you do not save you wont be able to trade\n'
+            'After copying the API key and secret click select Exchange, Binance Futures the APi Data buttons, capture the keys on the Api key and Api secret buttons on the bot then click Done\n\n'
+            'Click Trading Signals, subscriptions select free plan and the proceed to set Amount and Leverage\n'
+            'WAIT FOR PROFITABLE SIGNALS TO DO THE MAGIC\n'
+            'Join the group here to watch live trading'
+
+            
+            
         )
         update.message.reply_text(text=text, reply_markup=keyboard)
 
@@ -226,7 +238,7 @@ def verifyApiData(update: Update, context: CallbackContext, level, user_data):
                     exists = bool(db.session.query(BotConfigsModel).filter_by(telegram_id = str(telegram_id)).first())
                     print("existance", exists)
                     if exists:
-                        db.session.query(BotConfigsModel).filter_by(telegram_id=telegram_id).update({"key":api_key, "secret":api_secret})
+                        db.session.query(BotConfigsModel).filter_by(telegram_id=str(telegram_id)).update({"key":api_key, "secret":api_secret})
                         db.session.commit()
                         print('Telegram Data Updated')
 

@@ -8,11 +8,11 @@ from backend.operations.text_parser import processDataFor3commas
 
 red = redis.from_url(Config.REDIS_URL)
 raw_signal = """
-        ATOM/USDT LONG 
+        REN/USDT LONG 
         Leverage 20x
-        Entries 32.59
-        Target 1 32.84
-        Target 2 32.85
+        Entries 0.4421
+        Target 1 0.4460
+        Target 2 0.4470
         SL 30.160
         """
 
