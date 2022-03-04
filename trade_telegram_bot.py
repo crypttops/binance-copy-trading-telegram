@@ -171,16 +171,16 @@ def start(update: Update, context: CallbackContext) -> None:
     else:
        
         update.message.reply_text(
-            'Hello, Welcome to Binance premium trading bot.\nIf you do not have a binance account use the the link below to open account with binance\n'
-            'https://accounts.binance.me/en/register?ref=29337156\n'
+            'Hello, Welcome to Binance premium trading bot. If you do not have a binance account use the the link below to open account with binance\n'
+            'https://accounts.binance.me/en/register?ref=29337156\n\n'
             'After opening an account with binance use the link below to create your api key and secret \n'
-            'https://www.binance.com/en/my/settings/api-management\n'
-            'On the same window where there is Api key and secret are generated, look for Edit button and click it,then look for an option to enable futures option and click it by ticking the box on top and click SAVE.\n'
-            'If you do not save you wont be able to trade\n'
-            'After copying the API key and secret click select Exchange, Binance Futures the APi Data buttons, capture the keys on the Api key and Api secret buttons on the bot then click Done\n\n'
-            'Click Trading Signals, subscriptions select free plan and the proceed to set Amount and Leverage\n'
-            'WAIT FOR PROFITABLE SIGNALS TO DO THE MAGIC\n'
-            'Join the group here to watch live trading'
+            'https://www.binance.com/en/my/settings/api-management\n\n'
+            'On the same window where there is Api key and secret are generated, look for Edit button and click it,then look for an option✅ to enable futures option and click it by ticking the box on top and click SAVE.\n\n'
+            'If you do not save you wont be able to trade'
+            'After copying the API key and secret click select Exchange, Binance Futures then APi Data buttons, capture the keys on the Api key and Api secret buttons on the bot then click Done\n\n'
+            'Click Trading Signals, subscriptions select free plan and the proceed to set Amount and Leverage\n\n'
+            'WAIT FOR PROFITABLE SIGNALS TO DO THE MAGIC\n\n'
+            'Join the group here  https://t.me/binance001_signals_bot to watch live trading.'
 
             
             
