@@ -2,11 +2,12 @@
 
 from datetime import datetime, timedelta
 from telegram import LabeledPrice, ShippingOption
-from backend.operations.binance import getAllOpenOrders, getAllOpenPositions
+from backend.operations.binance import getAllOpenOrderSymbol, getAllOpenOrders, getAllOpenPositions
 from backend.operations.db import checkSubscriptionStatus, dbupdate
 from backend.utils.binance.client import Client as BinanceSpotClient
 from backend.utils import security
 from backend.models import  BotConfigsModel
+from config import Config
 from db import db
 from app import app
 
@@ -99,7 +100,7 @@ telegram_id = ''
 first_name = ''
 second_name  = ''
 
-bot_token ="5165033127:AAFVExTGyVh8mH-5goKNV1xO9LCCalAcF0g"
+bot_token =Config.BOT_TOKEN
 
 update1 = {}
 print("------------UPDATE 1- INIT----------------", update1)
@@ -170,7 +171,19 @@ def start(update: Update, context: CallbackContext) -> None:
     else:
        
         update.message.reply_text(
-            'Hello, Welcome to Binance Bot'
+            'Hello, Welcome to Binance premium trading bot. If you do not have a binance account use the the link below to open account with binance\n'
+            'https://accounts.binance.me/en/register?ref=29337156\n\n'
+            'After opening an account with binance use the link below to create your api key and secret \n'
+            'https://www.binance.com/en/my/settings/api-management\n\n'
+            'On the same window where there is Api key and secret are generated, look for Edit button and click it,then look for an option✅ to enable futures option and click it by ticking the box on top and click SAVE.\n\n'
+            'If you do not save you wont be able to trade'
+            'After copying the API key and secret click select Exchange, Binance Futures then APi Data buttons, capture the keys on the Api key and Api secret buttons on the bot then click Done\n\n'
+            'Click Trading Signals, subscriptions select free plan and the proceed to set Amount and Leverage\n\n'
+            'WAIT FOR PROFITABLE SIGNALS TO DO THE MAGIC\n\n'
+            'Join the group here  https://t.me/binance001_signals_bot to watch live trading.'
+
+            
+            
         )
         update.message.reply_text(text=text, reply_markup=keyboard)
 
@@ -200,7 +213,7 @@ def verifyApiData(update: Update, context: CallbackContext, level, user_data):
     buy = ''
     sell = ''
     secret = ''
-    bot_token ='5165033127:AAFVExTGyVh8mH-5goKNV1xO9LCCalAcF0g'
+    bot_token =Config.BOT_TOKEN
     user, telegram_id, first_name, second_name = getUserDetails(update, context)
     vvery12 = telegram_id
     for person in user_data[level]:
@@ -225,7 +238,7 @@ def verifyApiData(update: Update, context: CallbackContext, level, user_data):
                     exists = bool(db.session.query(BotConfigsModel).filter_by(telegram_id = str(telegram_id)).first())
                     print("existance", exists)
                     if exists:
-                        db.session.query(BotConfigsModel).filter_by(telegram_id=telegram_id).update({"key":api_key, "secret":api_secret})
+                        db.session.query(BotConfigsModel).filter_by(telegram_id=str(telegram_id)).update({"key":api_key, "secret":api_secret})
                         db.session.commit()
                         print('Telegram Data Updated')
 
@@ -315,7 +328,7 @@ def swapTrade(update: Update, context: CallbackContext, level, user_data):
     buy = ''
     sell = ''
     secret = ''
-    bot_token ='5165033127:AAFVExTGyVh8mH-5goKNV1xO9LCCalAcF0g'
+    bot_token =Config.BOT_TOKEN
     user, telegram_id, first_name, second_name = getUserDetails(update, context)
     vvery12 = telegram_id
     for person in user_data[level]:
@@ -368,7 +381,7 @@ def show_data(update: Update, context: CallbackContext) -> str:
     print("The execution is still on show data")
     textp = "djhsofddu"
    
-    bot_token ='5165033127:AAFVExTGyVh8mH-5goKNV1xO9LCCalAcF0g'
+    bot_token =Config.BOT_TOKEN
     user, telegram_id, first_name, second_name = getUserDetails(update, context)
     user_data = context.user_data
     bot_chatID = str(telegram_id)
@@ -1090,6 +1103,16 @@ def ask_for_input3(update: Update, context: CallbackContext) -> None:
         keyboard = InlineKeyboardMarkup(buttons)
         update.callback_query.answer()
         update.callback_query.edit_message_text(text=textp, reply_markup=keyboard)
+
+    elif context.user_data[CURRENT_FEATURE]==CLOSE:
+        with app.app_context():
+            data = getAllOpenOrderSymbol(telegram_id)
+        
+        textp=str(data)
+        buttons = [[InlineKeyboardButton(text='Back', callback_data=str(ENDMANUAL))]]
+        keyboard = InlineKeyboardMarkup(buttons)
+        update.callback_query.answer()
+        update.callback_query.edit_message_text(text=textp, reply_markup=keyboard)
     else:   
         update.callback_query.answer()
         update.callback_query.edit_message_text(text=text)
@@ -1316,9 +1339,11 @@ def production_warning(env, args):
 
 
 def main():
+
     # Create the Updater and pass it your bot's token.
     # Make sure to set use_context=True to use the new context based callbacks
     # Post version 12 this will no longer be necessary
+    bot_token =Config.BOT_TOKEN
     updater = Updater(bot_token, use_context=True)
 
     # Get the dispatcher to register handlers

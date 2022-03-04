@@ -1,6 +1,8 @@
 import os
+from dotenv import load_dotenv
+load_dotenv()
 
-postgres_local_base ='postgresql://postgres:J4c4kPniCpZXhyND7gHQ@containers-us-west-24.railway.app:7102/railway'
+postgres_local_base =os.getenv('POSTGRES_URL')
 # postgres_local_base = os.environ['DATABASE_URL']
 
 basedir = os.path.abspath(os.path.dirname(__file__))
@@ -9,10 +11,11 @@ class Config:
     SECRET_KEY = os.getenv('SECRET_KEY', 'BinaNceSPoTsWaP')
     DEBUG = False
     TOKEN_EXPIRE_HOURS = 2
-    REDIS_URL="redis://default:4sl26m0EmsdiEjUzjoOO@containers-us-west-4.railway.app:6162"
-    REDES_SUB_URL="redis://default:H5kvgAhlqYVxNEEJ4JZF@containers-us-west-27.railway.app:7558"
-    BOT_TOKEN="5165033127:AAFVExTGyVh8mH-5goKNV1xO9LCCalAcF0g"
-    CELERY_BROKER_URL="redis://default:4sl26m0EmsdiEjUzjoOO@containers-us-west-4.railway.app:6162"
+    REDIS_URL=os.getenv('REDIS_URL')
+    REDES_SUB_URL=os.getenv('REDES_SUB_URL')
+    # BOT_TOKEN="5165033127:AAFVExTGyVh8mH-5goKNV1xO9LCCalAcF0g"
+    BOT_TOKEN=os.getenv('BOT_TOKEN')
+    CELERY_BROKER_URL=os.getenv('CELERY_BROKER_URL')
 
 class DevelopmentConfig(Config):
     SQLALCHEMY_DATABASE_URI = postgres_local_base

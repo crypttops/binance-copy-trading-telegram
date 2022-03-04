@@ -38,8 +38,15 @@ def orderDataTemplateProcessor(data:Dict):
                     "type":position["order_type"].upper(),
                     "price":position["price"]['value']
                     }
+    close_position_data={
+        "symbol":pair.upper(),
+        "side":tp_side.upper(),
+        "quantity":None,#to be inserted for a specific user while send order
+        "type":'MARKET',
+        
+    }
     #updating position order 
-    orders.update({"position":position_data})
+    orders.update({"position":position_data, 'close_position_data':close_position_data})
 
     take_profits = data["take_profit"]["steps"]
     tp_orders =[]
@@ -66,8 +73,6 @@ def orderDataTemplateProcessor(data:Dict):
 
 
 
-my_queue = queue.Queue()
-
 def tps_n_sls(data, qty):
     # placing the takeprofits and stoploss orders
 
@@ -77,11 +82,6 @@ def tps_n_sls(data, qty):
         data['take_profit_orders'][tp]["quantity"]=float(qty)/tp_length
     data["stop_loss_order"]["quantity"]=float(qty)
     return data
-
-def storeInQueue(f):
-  def wrapper(*args):
-    my_queue.put(f(*args))
-  return wrapper
 
 
 def send_orders(api_key, api_secret, qty, data, telegram_id):
@@ -97,41 +97,6 @@ def send_orders(api_key, api_secret, qty, data, telegram_id):
     data["position"]["quantity"]=float(qty)
     print("Data after updating the quantiy", data)
     
-
-
-    
-        # responses=[]
-        
-        # tp_params = data["take_profit_orders"]
-        # print("The takeprofits", tp_params)
-        # tp_resp =''
-        # count=1
-        # for tp_param in tp_params:
-        #     print("The type of type object", type(tp_param))
-        #     try:
-        #         print("tp_param to send order", tp_param)
-        #         resp = client.sendOrder(tp_param)
-        #         bot_resp = f"[Binance Futures USDT-M]\n{tp_param['symbol']}/USDT TakeProfit {tp_param['side'].lower()} order placed @{tp_param['price']}\n\n"
-        #     except Exception as e:
-        #         print("The takeprofit error", str(e))
-        #         bot_resp = f"[Binance Futures USDT-M]\n{tp_param['symbol']}/USDT TakeProfit {tp_param['side'].lower()} @{tp_param['price']}Order Failed\nError:{str(e)}\n\n"
-        #     tp_resp+=bot_resp
-        # sendMessage(telegram_id, tp_resp)
-
-        # #send stop loss orders
-        # sl_params = data["stop_loss_order"]
-        # try:
-        #     resp = client.sendOrder(sl_params)
-        #     sl_resp = f"[Binance Futures USDT-M]\n{sl_params['symbol']}/USDT StopLoss {sl_params['side'].lower()} order placed @{sl_params['price']}\n\n"
-
-        # except Exception as e:
-        #     print("The sl error", str(e))
-        #     sl_resp = f"[Binance Futures USDT-M]\n{sl_params['symbol']}/USDT StopLoss {sl_params['side'].lower()} @{sl_params['price']}Order Failed\nError:{str(e)}\n\n"
-       
-        # sendMessage(telegram_id, sl_resp)
-
-
-    
     # send the position order
     position_params = data["position"]
     print("the data, ", position_params)
@@ -140,8 +105,8 @@ def send_orders(api_key, api_secret, qty, data, telegram_id):
         print("the response",resp)
         position_resp = f"[Binance Futures USDT-M]\n{position_params['symbol']}/USDT placed at {position_params['price']}"
         sendMessage(telegram_id, position_resp )
-        results = tps_n_sls(data, qty)
-        results.update({"key":api_key, "secret":api_secret,"telegram_id":telegram_id })
+        # results = tps_n_sls(data, qty)
+        results = {"key":api_key, "secret":api_secret,"telegram_id":telegram_id }
         return results
     except Exception as e:
         print("The position Error", str(e))
@@ -164,7 +129,9 @@ def user_counter():
             order_data = json.loads(signal_data['data'])
             data = orderDataTemplateProcessor(order_data) #missing parts in amount, takeprofit amounts and stop loss amounts
             symbolredis =data['position']['symbol']
-            priceredis = str(data['position']['price'])+"-"+str(data['position']['side'])
+            # priceredis = str(data['position']['price'])+"-"+str(data['position']['side'])
+            priceredis = str(data['position']['price'])
+            print("price redis key", priceredis)
 
 
             if signal_data is not False:
@@ -200,11 +167,11 @@ def user_counter():
                     # without threads implementation
 
                     # check where is the price of the position from the entry
-                    last_price = get_last_price_ticker(symbolredis)
-                    if float(last_price)>=float(data['position']['price']):
-                        price_state ="ETOP"#above the entry
-                    else:
-                        price_state="ELOW"#below the entry
+                    # last_price = get_last_price_ticker(symbolredis)
+                    # if float(last_price)>=float(data['position']['price']):
+                    #     price_state ="ETOP"#above the entry
+                    # else:
+                    #     price_state="ELOW"#below the entry
 
                     all_results =[]
                     for user in users:
@@ -215,12 +182,17 @@ def user_counter():
                         resp =send_orders(api_key,api_secret,amount, data, user.telegram_id)
                         if resp is not None:
                             all_results.append(resp)
+                        
                     print(all_results)
                     #save the orders to redis and start monitoring the price changes immediately
-
-                    red.set(str(priceredis), pickle.dumps(all_results))
-                    task_instance = startPriceStreams.apply_async(args=(symbolredis, priceredis,price_state))
-                    print(task_instance)
+                    records = {
+                        "position_close_data":data['close_position_data'],
+                        "users":all_results
+                    }
+                    red.set(str(priceredis), pickle.dumps(records))
+                    # task_instance = startPriceStreams.apply_async(args=(symbolredis, priceredis,price_state))
+                    # print(task_instance)
+                    print("Cache update successifully")
 
 
                     
