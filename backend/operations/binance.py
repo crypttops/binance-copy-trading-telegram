@@ -44,3 +44,20 @@ def getAllOpenPositions(telegram_id):
         return "You have no open positions"
 
     return json.dumps(processed, indent=4)
+def getAllOpenOrderSymbol(telegram_id):
+    user = db.session.query(BotConfigsModel).filter_by(telegram_id=str(telegram_id)).first()
+    client = BinanceFuturesOps(api_key=user.key, api_secret=user.secret, trade_symbol="BTCUSDT")
+    open_orders = client.checkAllOPenOrders()
+    if not open_orders:
+        return "You have no open orders"
+    processed =[]
+    for order in open_orders:
+        data = {
+                "symbol":order["symbol"],  
+              }
+        processed.append(data)
+    # print(json.dumps(processed, indent=4))
+    return json.dumps(processed, indent=4)
+
+    
+

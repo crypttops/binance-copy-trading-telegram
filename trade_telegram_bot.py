@@ -2,11 +2,12 @@
 
 from datetime import datetime, timedelta
 from telegram import LabeledPrice, ShippingOption
-from backend.operations.binance import getAllOpenOrders, getAllOpenPositions
+from backend.operations.binance import getAllOpenOrderSymbol, getAllOpenOrders, getAllOpenPositions
 from backend.operations.db import checkSubscriptionStatus, dbupdate
 from backend.utils.binance.client import Client as BinanceSpotClient
 from backend.utils import security
 from backend.models import  BotConfigsModel
+from config import Config
 from db import db
 from app import app
 
@@ -99,7 +100,7 @@ telegram_id = ''
 first_name = ''
 second_name  = ''
 
-bot_token ="5165033127:AAFVExTGyVh8mH-5goKNV1xO9LCCalAcF0g"
+bot_token =Config.BOT_TOKEN
 
 update1 = {}
 print("------------UPDATE 1- INIT----------------", update1)
@@ -200,7 +201,7 @@ def verifyApiData(update: Update, context: CallbackContext, level, user_data):
     buy = ''
     sell = ''
     secret = ''
-    bot_token ='5165033127:AAFVExTGyVh8mH-5goKNV1xO9LCCalAcF0g'
+    bot_token =Config.BOT_TOKEN
     user, telegram_id, first_name, second_name = getUserDetails(update, context)
     vvery12 = telegram_id
     for person in user_data[level]:
@@ -315,7 +316,7 @@ def swapTrade(update: Update, context: CallbackContext, level, user_data):
     buy = ''
     sell = ''
     secret = ''
-    bot_token ='5165033127:AAFVExTGyVh8mH-5goKNV1xO9LCCalAcF0g'
+    bot_token =Config.BOT_TOKEN
     user, telegram_id, first_name, second_name = getUserDetails(update, context)
     vvery12 = telegram_id
     for person in user_data[level]:
@@ -368,7 +369,7 @@ def show_data(update: Update, context: CallbackContext) -> str:
     print("The execution is still on show data")
     textp = "djhsofddu"
    
-    bot_token ='5165033127:AAFVExTGyVh8mH-5goKNV1xO9LCCalAcF0g'
+    bot_token =Config.BOT_TOKEN
     user, telegram_id, first_name, second_name = getUserDetails(update, context)
     user_data = context.user_data
     bot_chatID = str(telegram_id)
@@ -1090,6 +1091,16 @@ def ask_for_input3(update: Update, context: CallbackContext) -> None:
         keyboard = InlineKeyboardMarkup(buttons)
         update.callback_query.answer()
         update.callback_query.edit_message_text(text=textp, reply_markup=keyboard)
+
+    elif context.user_data[CURRENT_FEATURE]==CLOSE:
+        with app.app_context():
+            data = getAllOpenOrderSymbol(telegram_id)
+        
+        textp=str(data)
+        buttons = [[InlineKeyboardButton(text='Back', callback_data=str(ENDMANUAL))]]
+        keyboard = InlineKeyboardMarkup(buttons)
+        update.callback_query.answer()
+        update.callback_query.edit_message_text(text=textp, reply_markup=keyboard)
     else:   
         update.callback_query.answer()
         update.callback_query.edit_message_text(text=text)
@@ -1316,9 +1327,11 @@ def production_warning(env, args):
 
 
 def main():
+
     # Create the Updater and pass it your bot's token.
     # Make sure to set use_context=True to use the new context based callbacks
     # Post version 12 this will no longer be necessary
+    bot_token =Config.BOT_TOKEN
     updater = Updater(bot_token, use_context=True)
 
     # Get the dispatcher to register handlers
