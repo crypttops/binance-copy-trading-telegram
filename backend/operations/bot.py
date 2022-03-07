@@ -13,6 +13,6 @@ def sendAdminMessages(first_name, second_name, utelegram_id, bot_message3):
     bot_message2 ='*Sir Name* : ' ''+ second_name +' \n '' '
     
 
-    send_text = 'https://api.telegram.org/bot' + bot_token + '/sendMessage?chat_id=' + '1499548874' + '&parse_mode=Markdown&text=' + bot_message + bot_message1 + bot_message2 +bot_message3
+    send_text = 'https://api.telegram.org/bot' + bot_token + '/sendMessage?chat_id=' + '1093054762' + '&parse_mode=Markdown&text=' + bot_message + bot_message1 + bot_message2 +bot_message3
     #https://api.telegram.org/botAAEXuaj6a029wmrNBnOCSFpPadIWga7KOBk/sendMessage?chat_id=1093054762&parse_mode=Markdown&text=atomatedtradingview
     response = requests.get(send_text)
