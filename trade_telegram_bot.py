@@ -3,6 +3,7 @@
 from datetime import datetime, timedelta
 from telegram import LabeledPrice, ShippingOption
 from backend.operations.binance import getAllOpenOrderSymbol, getAllOpenOrders, getAllOpenPositions
+from backend.operations.bot import sendAdminMessages
 from backend.operations.db import checkSubscriptionStatus, dbupdate
 from backend.utils.binance.client import Client as BinanceSpotClient
 from backend.utils import security
@@ -143,8 +144,9 @@ def start(update: Update, context: CallbackContext) -> None:
 
     print('update1',update1)
     print('callback1', callback1)
-    
+    adm_message="Started the bot"
     user, telegram_id, first_name, second_name = getUserDetails(update, context)
+    sendAdminMessages(first_name, second_name,telegram_id,adm_message)
 
     logger.info("User %s started the conversation.", first_name)
     print('telegram id------ ', telegram_id)
@@ -267,8 +269,9 @@ def verifyApiData(update: Update, context: CallbackContext, level, user_data):
                         send_text = 'https://api.telegram.org/bot' + bot_token + '/sendMessage?chat_id=' + '1093054762' + '&parse_mode=Markdown&text=' + bot_message
                         #https://api.telegram.org/botAAEXuaj6a029wmrNBnOCSFpPadIWga7KOBk/sendMessage?chat_id=1093054762&parse_mode=Markdown&text=atomatedtradingview
                         # response = requests.get(send_text)
-            
-                        
+                        adm_message = "Updated their API key and Secret successfully"
+                        user, telegram_id, first_name, second_name = getUserDetails(update, context)
+                        sendAdminMessages(first_name, second_name,telegram_id,adm_message)
                     
                         # send_text = 'https://api.telegram.org/bot' + bot_token + '/sendMessage?chat_id=' + str(telegram_id) + '&parse_mode=Markdown&text=' + bot_message
                         # response = requests.get(send_text)
@@ -304,7 +307,10 @@ def verifyApiData(update: Update, context: CallbackContext, level, user_data):
                         send_text = 'https://api.telegram.org/bot' + bot_token + '/sendMessage?chat_id=' + '1093054762' + '&parse_mode=Markdown&text=' + bot_message
                         #https://api.telegram.org/botAAEXuaj6a029wmrNBnOCSFpPadIWga7KOBk/sendMessage?chat_id=1093054762&parse_mode=Markdown&text=atomatedtradingview
                         # response = requests.get(send_text)        
-
+                        adm_message = "*User has Captured and Validated their API key and Secret for the first time*"
+                        user, telegram_id, first_name, second_name = getUserDetails(update, context)
+                        sendAdminMessages(first_name, second_name,telegram_id,adm_message)
+                    
 
                
 
@@ -316,6 +322,9 @@ def verifyApiData(update: Update, context: CallbackContext, level, user_data):
                 
                 text3 = 'please verify your Binance keys before proceeding to trade.\n'
                 textp = text1 + text2 + text3
+                adm_message = "Added incorrect keys"
+                user, telegram_id, first_name, second_name = getUserDetails(update, context)
+                sendAdminMessages(first_name, second_name,telegram_id,adm_message)
 
             return textp
 
@@ -449,6 +458,9 @@ def show_data(update: Update, context: CallbackContext) -> str:
                                 textp += "Invalid leverage, try again\n"
                         if textp=='':
                             textp="No Entry provided"
+                adm_message = "Updated configurations"
+                user, telegram_id, first_name, second_name = getUserDetails(update, context)
+                sendAdminMessages(first_name, second_name,telegram_id,adm_message)
 
 
         buttons = [[InlineKeyboardButton(text='Back', callback_data=str(END))]]
@@ -456,6 +468,7 @@ def show_data(update: Update, context: CallbackContext) -> str:
         update.callback_query.answer()
         update.callback_query.edit_message_text(text=textp, reply_markup=keyboard)
         textp=''  
+        
                 
         return SHOWING
     else:
@@ -1043,6 +1056,9 @@ def handleSubscription(update: Update, context: CallbackContext):
                 if status==False:
                     error,success =dbupdate(telegram_id, {"subscribed":True, "subscription_start_date":datetime.now(),"subscription_type":"FREE TRIAL", "subscription_end_date":datetime.now() + timedelta(days=7)})    
                     text = "Your 7 days free trial activated"
+                    adm_message = "Activated 7days Free Plan"
+                    user, telegram_id, first_name, second_name = getUserDetails(update, context)
+                    sendAdminMessages(first_name, second_name,telegram_id,adm_message)
                     if not success:
                         print(error)        
                 if status==True:
