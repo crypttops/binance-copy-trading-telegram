@@ -21,6 +21,16 @@ module.exports = {
     "interpreter" : ".venv/bin/python",
   },
   {
+    "name": "binance-copy-trading-close-orders-sub",
+    "cwd": ".",
+    "script": "closesubscribe.py",
+    "instances": "1",
+    "wait_ready": true,
+    "autorestart": true,
+    "max_restarts": 5,
+    "interpreter" : ".venv/bin/python",
+  },
+  {
     "name": "binane-copy-trading-telegram-bot",
     "script": "trade_telegram_bot.py",
     "args": [],

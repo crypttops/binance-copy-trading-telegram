@@ -425,8 +425,7 @@ def show_data(update: Update, context: CallbackContext) -> str:
             if person[GENDER]==COPYTRADE:
                 amount = person.get(AGE, None)
                 leverage =person.get(LEVERAGE, None)
-
-
+                
                 with app.app_context():
                     status, subscription_type =checkSubscriptionStatus(telegram_id)
                     if status==False:
@@ -451,11 +450,11 @@ def show_data(update: Update, context: CallbackContext) -> str:
                             textp="No Entry provided"
 
 
-                buttons = [[InlineKeyboardButton(text='Back', callback_data=str(END))]]
-                keyboard = InlineKeyboardMarkup(buttons)
-                update.callback_query.answer()
-                update.callback_query.edit_message_text(text=textp, reply_markup=keyboard)
-                textp=''  
+        buttons = [[InlineKeyboardButton(text='Back', callback_data=str(END))]]
+        keyboard = InlineKeyboardMarkup(buttons)
+        update.callback_query.answer()
+        update.callback_query.edit_message_text(text=textp, reply_markup=keyboard)
+        textp=''  
                 
         return SHOWING
     else:
