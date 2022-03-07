@@ -419,10 +419,10 @@ def show_data(update: Update, context: CallbackContext) -> str:
                 user_data[START_OVER] = True
                 print("------------CALLBACK 1---END START--------------", callback1)
                 print("------------UPDATE 1- END START----------------", update1)
-                buttons = [[InlineKeyboardButton(text='Back', callback_data=str(END))]]
-                keyboard = InlineKeyboardMarkup(buttons)
-                update.callback_query.answer()
-                update.callback_query.edit_message_text(text=textp, reply_markup=keyboard)  
+                # buttons = [[InlineKeyboardButton(text='Back', callback_data=str(END))]]
+                # keyboard = InlineKeyboardMarkup(buttons)
+                # update.callback_query.answer()
+                # update.callback_query.edit_message_text(text=textp, reply_markup=keyboard)  
             if person[GENDER]==COPYTRADE:
                 amount = person.get(AGE, None)
                 leverage =person.get(LEVERAGE, None)
