@@ -146,6 +146,7 @@ def start(update: Update, context: CallbackContext) -> None:
     print('callback1', callback1)
     adm_message="Started the bot"
     user, telegram_id, first_name, second_name = getUserDetails(update, context)
+    # sending starting bot message
     sendAdminMessages(first_name, second_name,telegram_id,adm_message)
 
     logger.info("User %s started the conversation.", first_name)
@@ -447,6 +448,7 @@ def show_data(update: Update, context: CallbackContext) -> str:
                                 float(amount)
                                 dbupdate(telegram_id,{'amount':amount})
                                 textp+="Amount updated successifully\n"
+                                
                             except Exception as e:
                                 textp += "Invalid amount, try again\n"
                         if leverage is not None:
@@ -458,7 +460,7 @@ def show_data(update: Update, context: CallbackContext) -> str:
                                 textp += "Invalid leverage, try again\n"
                         if textp=='':
                             textp="No Entry provided"
-                adm_message = "Updated configurations"
+                adm_message = textp
                 user, telegram_id, first_name, second_name = getUserDetails(update, context)
                 sendAdminMessages(first_name, second_name,telegram_id,adm_message)
 
@@ -483,7 +485,10 @@ def stop(update: Update, context: CallbackContext) -> None:
     """End Conversation by command."""
     update.message.reply_text('Okay, bye.')
     update.message.reply_text('Type, /start to restart bot.')
-    
+    adm_message = "Stopped the bot"
+    user, telegram_id, first_name, second_name = getUserDetails(update, context)
+    sendAdminMessages(first_name, second_name,telegram_id,adm_message)
+
     context.user_data[START_OVER] = False
     return END
 
@@ -1001,10 +1006,18 @@ def successful_payment_callback(update: Update, context: CallbackContext) -> Non
             error,success =dbupdate(telegram_id, {"subscribed":True, "subscription_start_date":datetime.now(),"subscription_type":"PRO","subscription_end_date":datetime.now() + timedelta(days=30)})
             if not success:
                 print(error)
+            else:
+                adm_message = "Subscribed to premium plan"
+                user, telegram_id, first_name, second_name = getUserDetails(update, context)
+                sendAdminMessages(first_name, second_name,telegram_id,adm_message)
         elif status==True and subscription_type=="FREE TRIAL":
             error,success =dbupdate(telegram_id, {"subscribed":True, "subscription_start_date":datetime.now(),"subscription_type":"PRO","subscription_end_date":datetime.now() + timedelta(days=30)})
             if not success:
                 print(error)
+            else:
+                adm_message = "Subscribed to premium plan"
+                user, telegram_id, first_name, second_name = getUserDetails(update, context)
+                sendAdminMessages(first_name, second_name,telegram_id,adm_message)
         else:
             text="you are already in an active plan"
             # buttons = [
@@ -1056,7 +1069,7 @@ def handleSubscription(update: Update, context: CallbackContext):
                 if status==False:
                     error,success =dbupdate(telegram_id, {"subscribed":True, "subscription_start_date":datetime.now(),"subscription_type":"FREE TRIAL", "subscription_end_date":datetime.now() + timedelta(days=7)})    
                     text = "Your 7 days free trial activated"
-                    adm_message = "Activated 7days Free Plan"
+                    adm_message = "Subscribed to 7 days Free Plan"
                     user, telegram_id, first_name, second_name = getUserDetails(update, context)
                     sendAdminMessages(first_name, second_name,telegram_id,adm_message)
                     if not success:
