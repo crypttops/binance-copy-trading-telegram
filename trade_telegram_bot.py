@@ -88,9 +88,11 @@ ENDMANUAL =  map(chr, range(18, 19))
     TRAILINGSTOP,
     NEWTRAILINGACTIVE,
     LEVERAGESETTING,
-    CSUBSCRIPTION
+    CSUBSCRIPTION,
+    CONNECT,
+    DISCONNECT
     
-) = map(chr, range(19, 56))
+) = map(chr, range(19, 58))
 
 
 global telegram_id
@@ -184,7 +186,8 @@ def start(update: Update, context: CallbackContext) -> None:
             'After copying the API key and secret click select Exchange, Binance Futures then APi Data buttons, capture the keys on the Api key and Api secret buttons on the bot then click Done\n\n'
             'Click Trading Signals, subscriptions select free plan and the proceed to set Amount and Leverage\n\n'
             'WAIT FOR PROFITABLE SIGNALS TO DO THE MAGIC\n\n'
-            'Join the group here  https://t.me/binance001_signals_bot to watch live trading.'
+            'Join the group here  https://t.me/binance001_signals_bot to watch live trading.\n\n'
+            'TO CONNECT OR DISCONNECT THE BOT FROM EXECUTING THE ORDERS, Navigate through the trading signals button to access the connect and disconnect buttons'
 
             
             
@@ -856,6 +859,11 @@ def select_feature3(update: Update, context: CallbackContext) -> None:
     buttons = [
         [
             InlineKeyboardButton(text='Subscriptions', callback_data=str(SUBSCRIPTIONS)),
+        ],
+        [
+            
+            InlineKeyboardButton(text='Connect', callback_data=str(CONNECT)),
+            InlineKeyboardButton(text='Disconnect', callback_data=str(DISCONNECT)),
         ], 
         [
             
@@ -1132,7 +1140,30 @@ def ask_for_input3(update: Update, context: CallbackContext) -> None:
         keyboard = InlineKeyboardMarkup(buttons)
         update.callback_query.answer()
         update.callback_query.edit_message_text(text=textp, reply_markup=keyboard)
-
+    elif context.user_data[CURRENT_FEATURE]==CONNECT:
+        print("Here on connect")
+        with app.app_context():
+            error, resp=dbupdate(telegram_id, {"connected":True})
+        if resp==True:
+            textp="Bot connected"
+            buttons = [[InlineKeyboardButton(text='Back', callback_data=str(ENDMANUAL))]]
+            keyboard = InlineKeyboardMarkup(buttons)
+            update.callback_query.answer()
+            update.callback_query.edit_message_text(text=textp, reply_markup=keyboard)
+        else:
+            print(error)
+    elif context.user_data[CURRENT_FEATURE]==DISCONNECT:
+        print("Here on dosconnect")
+        with app.app_context():
+            error, resp= dbupdate(telegram_id, {"connected":False})
+        if resp==True:
+            textp="Bot Disconnected"
+            buttons = [[InlineKeyboardButton(text='Back', callback_data=str(ENDMANUAL))]]
+            keyboard = InlineKeyboardMarkup(buttons)
+            update.callback_query.answer()
+            update.callback_query.edit_message_text(text=textp, reply_markup=keyboard)
+        else:
+            print("eror", error)
     elif context.user_data[CURRENT_FEATURE]==CLOSE:
         with app.app_context():
             data = getAllOpenOrderSymbol(telegram_id)
