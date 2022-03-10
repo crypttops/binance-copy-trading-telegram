@@ -29,6 +29,9 @@ class BotConfigsModel(BaseClass, db.Model):
     subscription_start_date = db.Column(db.DateTime, nullable=True)
     subscription_end_date = db.Column(db.DateTime, nullable=True)
     updated_on = db.Column(db.DateTime, nullable=True)
+    connected = db.Column(db.Boolean, default=True)
+    subscription_status =db.Column(db.String, nullable=False)
+
   
 
     @classmethod

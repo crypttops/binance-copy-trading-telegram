@@ -12,7 +12,7 @@ def getConfigs(telegram_id):
 def getAllUserConfigs():
     """Get all the user configurations"""
 
-    configs = db.session.query(BotConfigsModel).filter_by(subscribed=True).all()
+    configs = db.session.query(BotConfigsModel).filter_by(subscribed=True,connected=True).all()
     return configs
 
 def dbupdate(telegram_id, data:Dict):
