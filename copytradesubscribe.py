@@ -4,6 +4,7 @@ import pickle
 from pydoc_data.topics import topics
 import queue
 from typing import Dict
+from backend.operations.binance import cancelAllPositionBySymbol
 from backend.operations.binance_futures import BinanceFuturesOps
 import threading
 from app import app
@@ -200,6 +201,7 @@ def user_counter():
                         api_secret=user.secret
                         leverage=20
                         amount=convert_usdt_to_base_asset(symbolredis, user.amount, leverage)
+                        cancelAllPositionBySymbol(user.api_key, user.api_secret,symbolredis )
                         resp =send_orders(api_key,api_secret,amount, data, user.telegram_id)
                         if resp is not None:
                             all_results.append(resp)
