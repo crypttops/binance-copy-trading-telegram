@@ -130,7 +130,7 @@ def send_orders(api_key, api_secret, qty, data, telegram_id):
 def user_counter():
   pass
   sub = redsub.pubsub()
-  sub.subscribe('smart-signals')
+  sub.subscribe('smart-signals-kucoin-order')
   for signal_data in sub.listen():
     #   print("signal data", signal_data)
       if signal_data is not None and isinstance(signal_data, dict):
@@ -195,15 +195,15 @@ def user_counter():
 
                     all_results =[]
                     for user in users:
-                        if user.telegram_id ==str(1499548874):
-                            api_key =user.key
-                            api_secret=user.secret
-                            leverage=20
-                            amount=convert_usdt_to_base_asset(symbolredis, user.amount, leverage)
-                            resp =send_orders(api_key,api_secret,amount, data, user.telegram_id)
-                            if resp is not None:
-                                all_results.append(resp)
-                        
+                        # if user.telegram_id ==str(1499548874):
+                        api_key =user.key
+                        api_secret=user.secret
+                        leverage=20
+                        amount=convert_usdt_to_base_asset(symbolredis, user.amount, leverage)
+                        resp =send_orders(api_key,api_secret,amount, data, user.telegram_id)
+                        if resp is not None:
+                            all_results.append(resp)
+                    
                     print(all_results)
                     #save the orders to redis and start monitoring the price changes immediately
                     # records = {
