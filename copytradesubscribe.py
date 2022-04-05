@@ -139,7 +139,7 @@ def user_counter():
             order_data = json.loads(signal_data['data'])
             # print("orser data", order_data)
             data= {"position":{
-                    "symbol":order_data['symbol'].upper(),
+                    "symbol":order_data['symbol'][:-1].upper(),
                     "side":order_data["side"].upper(),
                     "quantity":None,#to be inserted for a specific user while send order
                     "type":order_data["type"].upper()
