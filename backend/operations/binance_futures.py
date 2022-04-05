@@ -279,7 +279,7 @@ class BinanceFuturesOps(BinanceClient):
     def orderToPlaceProcessor(self, params):
         # TODO check previous positions
         order_basics = {"symbol": params["symbol"], "type": params['type'],
-                        "side": params["side"], "quantity": params["quantity"]}
+                        "side": params["side"], "quantity": self.round_decimals_down(params["quantity"], self.qtyPrecision)}
         if 'reduceOnly' in params:
             order_basics.update({'reduceOnly':'true'})
         open_orders = self.checkAllOPenOrders()
