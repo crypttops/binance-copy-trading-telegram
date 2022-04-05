@@ -7,19 +7,30 @@ from config import Config
 from backend.operations.text_parser import processDataFor3commas
 
 red = redis.from_url(Config.REDIS_URL)
-raw_signal = """
-        REN/USDT LONG 
-        Leverage 20x
-        Entries 0.4421
-        Target 1 0.4460
-        Target 2 0.4470
-        SL 30.160
-        """
+raw_signal = {
+    "reduceOnly": False,
+    "closeOrder": False,
+    "forceHold": False,
+    "hidden": False,
+    "iceberg": False,
+    "leverage": 20,
+    "postOnly": False,
+    "remark": "remark",
+    "side": "buy",
+    "size": 1,
+    "stop": "",
+    "stopPrice": 0,
+    "stopPriceType": "",
+    "symbol": "JASYMUSDT",
+    "timeInForce": "",
+    "type": "market",
+    "visibleSize": 0
+}
 
 def stream(raw_signal):
-    data =processDataFor3commas(raw_signal)
-    if data is not False:
-        red.publish('smart-signals',json.dumps(data))
+    # data =processDataFor3commas(raw_signal)
+    # if data is not False:
+    red.publish('smart-signals',json.dumps(raw_signal))
 
 if __name__ == '__main__':
     stream(raw_signal)
