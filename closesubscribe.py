@@ -29,39 +29,24 @@ def user_counter():
     for signal_data in sub.listen():
         if signal_data is not None and isinstance(signal_data, dict):
             try:
-                command = json.loads(signal_data['data'])
-                print(command)
-                command_close=command.split('-')
-                print(command_close)
-                close_data =json.loads(command_close[1])
-            
-                print(close_data)
-
-                rediskeyname = str(float(close_data['price']))
-                print("Rediskeyname", rediskeyname)
-                userorderdetails = pickle.loads(red.get(rediskeyname))
-                # userdetails = [{'key':'Dl5u9FNa2BR5H0SXfzD9BAT6wPRdL6iuceVOCCT8IkLlaaT2C2Ko5ySmuz4Z0j6c','secret': 'IB1z4Kz55GrxXBfGWwl54yJZcvjGcRZlZgSc0KLMWqrgUJIzKo0DfiGKSKLSvAOW', 'telegram_id':'1499548874' }]
-                position_cancel_params=userorderdetails['position_close_data']
-                # position_cancel_params = {'symbol': 'RENUSDT', 'type': 'MARKET', 'side': 'SELL', 'quantity':None}
-                userdetails = userorderdetails['users']
-                print("The are the details to use to place the orders", userdetails)
-                for user_order_details in userdetails:
-                    api_key =user_order_details['key']
-                    api_secret = user_order_details['secret']
-
-                    telegram_id = user_order_details['telegram_id']
+                close_data = json.loads(signal_data['data'])
+                
+                with app.app_context():
+                    users = getAllUserConfigs()
+                    print(users)
+                    
+                if users ==[]:#if no data
+                    pass
+                else:
                     # close order method
-                    with app.app_context():
-                        response = cancelAllPositionBySymbol(telegram_id,api_key, api_secret, close_data['symbol'], position_cancel_params)
-                    if response:
-                        sendMessage(telegram_id, f"All orders and positions for {close_data['symbol']} closed successfully.")
-                    else:
-                        sendMessage(telegram_id, f"You have no open positions for {close_data['symbol']}")
+                    for user in users:
+                        response = cancelAllPositionBySymbol(user.api_key, user.api_secret, close_data['symbol'])
+                        if response:
+                            sendMessage(user.telegram_id, f"All orders and positions for {close_data['symbol']} closed successfully.")
+                        else:
+                            sendMessage(user.telegram_id, f"You have no open positions for {close_data['symbol']}")
 
-                red.delete(rediskeyname)
-                print(f"Done processing deleting cache for {rediskeyname} from memory" )
-
-                        
+                    print ("done" )   
             except Exception as e:
                 print("error found", str(e))
 
