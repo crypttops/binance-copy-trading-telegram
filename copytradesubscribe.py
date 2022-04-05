@@ -124,19 +124,31 @@ def user_counter():
   sub = redsub.pubsub()
   sub.subscribe('smart-signals')
   for signal_data in sub.listen():
+    #   print("signal data", signal_data)
       if signal_data is not None and isinstance(signal_data, dict):
+
         try:
             order_data = json.loads(signal_data['data'])
-            data = orderDataTemplateProcessor(order_data) #missing parts in amount, takeprofit amounts and stop loss amounts
+            # print("orser data", order_data)
+            data= {"position":{
+                    "symbol":order_data['symbol'].upper(),
+                    "side":order_data["side"].upper(),
+                    "quantity":None,#to be inserted for a specific user while send order
+                    "type":order_data["type"].upper()
+                    }}
+            # data = orderDataTemplateProcessor(order_data) #missing parts in amount, takeprofit amounts and stop loss amounts
             symbolredis =data['position']['symbol']
-            # priceredis = str(data['position']['price'])+"-"+str(data['position']['side'])
-            priceredis = str(data['position']['price'])
-            print("price redis key", priceredis)
+            # print(symbolredis)
+            # print(data)
+            # # priceredis = str(data['position']['price'])+"-"+str(data['position']['side'])
+            # priceredis = str(data['position']['price'])
+            # print("price redis key", priceredis)
 
 
             if signal_data is not False:
                 with app.app_context():
                     users = getAllUserConfigs()
+                    print(users)
                 if users ==[]:#if no data
                     pass
                 else:
@@ -175,24 +187,25 @@ def user_counter():
 
                     all_results =[]
                     for user in users:
-                        api_key =user.key
-                        api_secret=user.secret
-                        leverage=20
-                        amount=convert_usdt_to_base_asset(symbolredis, user.amount, leverage)
-                        resp =send_orders(api_key,api_secret,amount, data, user.telegram_id)
-                        if resp is not None:
-                            all_results.append(resp)
+                        if user.telegram_id ==str(1499548874):
+                            api_key =user.key
+                            api_secret=user.secret
+                            leverage=20
+                            amount=convert_usdt_to_base_asset(symbolredis, user.amount, leverage)
+                            resp =send_orders(api_key,api_secret,amount, data, user.telegram_id)
+                            if resp is not None:
+                                all_results.append(resp)
                         
                     print(all_results)
                     #save the orders to redis and start monitoring the price changes immediately
-                    records = {
-                        "position_close_data":data['close_position_data'],
-                        "users":all_results
-                    }
-                    red.set(str(priceredis), pickle.dumps(records))
-                    # task_instance = startPriceStreams.apply_async(args=(symbolredis, priceredis,price_state))
-                    # print(task_instance)
-                    print("Cache update successifully")
+                    # records = {
+                    #     "position_close_data":data['close_position_data'],
+                    #     "users":all_results
+                    # }
+                    # red.set(str(priceredis), pickle.dumps(records))
+                    # # task_instance = startPriceStreams.apply_async(args=(symbolredis, priceredis,price_state))
+                    # # print(task_instance)
+                    # print("Cache update successifully")
 
 
                     
