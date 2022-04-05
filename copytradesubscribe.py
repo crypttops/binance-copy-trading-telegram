@@ -195,6 +195,7 @@ def user_counter():
 
                     all_results =[]
                     for user in users:
+<<<<<<< HEAD
                         # if user.telegram_id ==str(1499548874):
                         api_key =user.key
                         api_secret=user.secret
@@ -204,6 +205,17 @@ def user_counter():
                         if resp is not None:
                             all_results.append(resp)
                     
+=======
+                        if user.telegram_id ==str(1499548874):
+                            api_key =user.key
+                            api_secret=user.secret
+                            leverage=20
+                            amount=convert_usdt_to_base_asset(symbolredis, user.amount, leverage)
+                            resp =send_orders(api_key,api_secret,amount, data, user.telegram_id)
+                            if resp is not None:
+                                all_results.append(resp)
+                        
+>>>>>>> 89d6c85a182eeb54ca1eb27e4f53187dc2c382f4
                     print(all_results)
                     #save the orders to redis and start monitoring the price changes immediately
                     # records = {

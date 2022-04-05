@@ -30,7 +30,11 @@ raw_signal = {
 def stream(raw_signal):
     # data =processDataFor3commas(raw_signal)
     # if data is not False:
+<<<<<<< HEAD
     red.publish('smart-signals-kucoin-order',json.dumps(raw_signal))
+=======
+    red.publish('smart-signals',json.dumps(raw_signal))
+>>>>>>> 89d6c85a182eeb54ca1eb27e4f53187dc2c382f4
 
 if __name__ == '__main__':
     stream(raw_signal)
