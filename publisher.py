@@ -6,14 +6,18 @@ from config import Config
 
 from backend.operations.text_parser import processDataFor3commas
 
-red = redis.from_url(Config.REDIS_URL)
+red = redis.from_url(Config.REDES_SUB_URL)
 raw_signal = """
-        REN/USDT LONG 
+        OGN/USDT SHORT 
         Leverage 20x
-        Entries 0.4421
-        Target 1 0.4460
-        Target 2 0.4470
-        SL 30.160
+        Entries 0.540
+        Target 1 0.465
+        Target 2 0.454
+        Target 3 0.437
+        Target 4 0.380
+        Target 5 0.359
+
+        SL 0.507
         """
 
 def stream(raw_signal):

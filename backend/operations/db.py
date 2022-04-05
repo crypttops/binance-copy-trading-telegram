@@ -24,7 +24,10 @@ def dbupdate(telegram_id, data:Dict):
         return str(e), False
 def checkSubscriptionStatus(telegram_id):
     user = db.session.query(BotConfigsModel).filter_by(telegram_id=str(telegram_id)).first()
-    if user.subscribed ==True:
-        return True, user.subscription_type
+    if user is not None:
+        if user.subscribed ==True:
+            return True, user.subscription_type
+        else:
+            return False, None
     else:
         return False, None

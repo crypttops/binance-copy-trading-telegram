@@ -26,6 +26,13 @@ def orderDataTemplateProcessor(data:Dict):
     pair = data["pair"].upper().replace("USDT_", "")
     amount =data["position"]["units"]["value"]
     volume_per_tp = data["take_profit"]["steps"][0]["volume"]
+    
+    position_side =data["position"]["type"]
+    if position_side=="sell":
+        data["position"]["type"]="buy"
+    elif position_side =="buy":
+        data["position"]["type"]="sell"
+
     position_side =data["position"]["type"]
     if position_side == "sell":
         tp_side = "buy"
@@ -36,6 +43,7 @@ def orderDataTemplateProcessor(data:Dict):
                     "side":position["type"].upper(),
                     "quantity":None,#to be inserted for a specific user while send order
                     "type":position["order_type"].upper(),
+                    # "type":"MARKET",
                     "price":position["price"]['value']
                     }
     close_position_data={

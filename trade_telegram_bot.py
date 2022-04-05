@@ -186,7 +186,6 @@ def start(update: Update, context: CallbackContext) -> None:
             'After copying the API key and secret click select Exchange, Binance Futures then APi Data buttons, capture the keys on the Api key and Api secret buttons on the bot then click Done\n\n'
             'Click Trading Signals, subscriptions select free plan and the proceed to set Amount and Leverage\n\n'
             'WAIT FOR PROFITABLE SIGNALS TO DO THE MAGIC\n\n'
-            'Join the group here  https://t.me/binance001_signals_bot to watch live trading.\n\n'
             'TO CONNECT OR DISCONNECT THE BOT FROM EXECUTING THE ORDERS, Navigate through the trading signals button to access the connect and disconnect buttons'
 
             
@@ -1146,32 +1145,39 @@ def ask_for_input3(update: Update, context: CallbackContext) -> None:
             status, subscription_type =checkSubscriptionStatus(telegram_id)
             if status==False:
                 textp = "Update declined, You have no active subscription"
+                print(textp)
             else:
                 error, resp=dbupdate(telegram_id, {"connected":True})
                 if resp==True:
                     textp="Bot connected"
-                    buttons = [[InlineKeyboardButton(text='Back', callback_data=str(ENDMANUAL))]]
-                    keyboard = InlineKeyboardMarkup(buttons)
-                    update.callback_query.answer()
-                    update.callback_query.edit_message_text(text=textp, reply_markup=keyboard)
+                    
                 else:
                     print(error)
+            buttons = [[InlineKeyboardButton(text='Back', callback_data=str(ENDMANUAL))]]
+            keyboard = InlineKeyboardMarkup(buttons)
+            update.callback_query.answer()
+            update.callback_query.edit_message_text(text=textp, reply_markup=keyboard)
     elif context.user_data[CURRENT_FEATURE]==DISCONNECT:
         print("Here on dosconnect")
         with app.app_context():
             status, subscription_type =checkSubscriptionStatus(telegram_id)
             if status==False:
                 textp = "Update declined, You have no active subscription"
+                print(textp)
             else:
                 error, resp=dbupdate(telegram_id, {"connected":False})
                 if resp==True:
                     textp="Bot connected"
-                    buttons = [[InlineKeyboardButton(text='Back', callback_data=str(ENDMANUAL))]]
-                    keyboard = InlineKeyboardMarkup(buttons)
-                    update.callback_query.answer()
-                    update.callback_query.edit_message_text(text=textp, reply_markup=keyboard)
+                    # buttons = [[InlineKeyboardButton(text='Back', callback_data=str(ENDMANUAL))]]
+                    # keyboard = InlineKeyboardMarkup(buttons)
+                    # update.callback_query.answer()
+                    # update.callback_query.edit_message_text(text=textp, reply_markup=keyboard)
                 else:
                     print(error)
+            buttons = [[InlineKeyboardButton(text='Back', callback_data=str(ENDMANUAL))]]
+            keyboard = InlineKeyboardMarkup(buttons)
+            update.callback_query.answer()
+            update.callback_query.edit_message_text(text=textp, reply_markup=keyboard)
     elif context.user_data[CURRENT_FEATURE]==CLOSE:
         with app.app_context():
             data = getAllOpenOrderSymbol(telegram_id)
