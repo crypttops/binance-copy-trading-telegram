@@ -25,11 +25,12 @@ bot_token = Config.BOT_TOKEN
 def user_counter():
 
     sub = redsub.pubsub()
-    sub.subscribe('smart-signals-close')
+    sub.subscribe('smart-signals-kucoin-close-2')
     for signal_data in sub.listen():
         if signal_data is not None and isinstance(signal_data, dict):
             try:
                 close_data = json.loads(signal_data['data'])
+                close_data['symbol']=close_data['symbol'][:-1]
                 
                 with app.app_context():
                     users = getAllUserConfigs()
@@ -40,7 +41,7 @@ def user_counter():
                 else:
                     # close order method
                     for user in users:
-                        response = cancelAllPositionBySymbol(user.api_key, user.api_secret, close_data['symbol'])
+                        response = cancelAllPositionBySymbol(user.key, user.secret, close_data['symbol'])
                         if response:
                             sendMessage(user.telegram_id, f"All orders and positions for {close_data['symbol']} closed successfully.")
                         else:

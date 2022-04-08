@@ -21,80 +21,12 @@ redsub= redis.from_url(Config.REDES_SUB_URL)
 bot_token = Config.BOT_TOKEN
 
 Data =[]
-def orderDataTemplateProcessor(data:Dict):
-    orders ={}
-    position = data["position"]
-    pair = data["pair"].upper().replace("USDT_", "")
-    amount =data["position"]["units"]["value"]
-    volume_per_tp = data["take_profit"]["steps"][0]["volume"]
-    
-    position_side =data["position"]["type"]
-    if position_side=="sell":
-        data["position"]["type"]="buy"
-    elif position_side =="buy":
-        data["position"]["type"]="sell"
 
-    position_side =data["position"]["type"]
-    if position_side == "sell":
-        tp_side = "buy"
-    if position_side =="buy":
-        tp_side = "sell"
-    position_data={
-                    "symbol":pair.upper(),
-                    "side":position["type"].upper(),
-                    "quantity":None,#to be inserted for a specific user while send order
-                    "type":position["order_type"].upper(),
-                    # "type":"MARKET",
-                    "price":position["price"]['value']
-                    }
-    close_position_data={
-        "symbol":pair.upper(),
-        "side":tp_side.upper(),
-        "quantity":None,#to be inserted for a specific user while send order
-        "type":'MARKET',
-        
-    }
-    #updating position order 
-    orders.update({"position":position_data, 'close_position_data':close_position_data})
-
-    take_profits = data["take_profit"]["steps"]
-    tp_orders =[]
-    for tp in take_profits:
-        tp_order={
-        "symbol":pair,
-        "side":tp_side.upper() ,
-        "quantity":None,#to be inserted for a specific user while send order
-        "type":tp["order_type"].upper(),
-        "price":tp["price"]["value"],
-        "reduceOnly":"true"
-
-        }
-        tp_orders.append(tp_order)
-
-    orders.update({"take_profit_orders":tp_orders})
-
-    #updating stoploss order
-    stop_loss = data["stop_loss"]
-    stop_loss_order = {"symbol":pair.upper(),"side":tp_side.upper(), "quantity":None, "type":stop_loss["order_type"].upper(), "price":stop_loss["price"]["value"]}
-    orders.update({"stop_loss_order":stop_loss_order})
-    return orders
-
-
-
-
-def tps_n_sls(data, qty):
-    # placing the takeprofits and stoploss orders
-
-    tp_length = len(data["take_profit_orders"])
-
-    for tp in range(tp_length):
-        data['take_profit_orders'][tp]["quantity"]=float(qty)/tp_length
-    data["stop_loss_order"]["quantity"]=float(qty)
-    return data
 
 
 def send_orders(api_key, api_secret, qty, data, telegram_id):
-
+    print(f"Executing order for {telegram_id}")
+    print("Data in send order", data)
     print("quantity", qty)
     """
     #Order template
@@ -112,7 +44,7 @@ def send_orders(api_key, api_secret, qty, data, telegram_id):
     try:
         resp = client.sendOrder(position_params)
         print("the response",resp)
-        position_resp = f"[Binance Futures USDT-M]\n{position_params['symbol']}/USDT placed at {position_params['price']}"
+        position_resp = f"[Binance Futures USDT-M]\n{position_params['symbol']}/USDT placed successfully"
         sendMessage(telegram_id, position_resp )
         # results = tps_n_sls(data, qty)
         results = {"key":api_key, "secret":api_secret,"telegram_id":telegram_id }
@@ -131,7 +63,7 @@ def send_orders(api_key, api_secret, qty, data, telegram_id):
 def user_counter():
   pass
   sub = redsub.pubsub()
-  sub.subscribe('smart-signals-kucoin-order')
+  sub.subscribe('smart-signals-kucoin-order-2')
   for signal_data in sub.listen():
     #   print("signal data", signal_data)
       if signal_data is not None and isinstance(signal_data, dict):
@@ -145,6 +77,8 @@ def user_counter():
                     "quantity":None,#to be inserted for a specific user while send order
                     "type":order_data["type"].upper()
                     }}
+
+            print("position data", data)
             # data = orderDataTemplateProcessor(order_data) #missing parts in amount, takeprofit amounts and stop loss amounts
             symbolredis =data['position']['symbol']
             # print(symbolredis)
@@ -153,7 +87,7 @@ def user_counter():
             # priceredis = str(data['position']['price'])
             # print("price redis key", priceredis)
 
-
+            print("The symbol redis", symbolredis)
             if signal_data is not False:
                 with app.app_context():
                     users = getAllUserConfigs()
@@ -161,38 +95,6 @@ def user_counter():
                 if users ==[]:#if no data
                     pass
                 else:
-                    threads =[]
-
-                    # for user in users:
-                    #     api_key =user.key
-                    #     api_secret=user.secret
-                    #     amount=user.amount
-                    #     t1 = threading.Thread(target=send_orders, args=(api_key,api_secret,amount, data, user.telegram_id))
-                    #     threads.append(t1)
-                    # print("threads:", threads)
-                    # for thread in threads:
-                    #     thread.start()
-
-                    # all_results =[]
-                    # for thread in threads:
-                    #     thread.join()
-                    #     my_data = my_queue.get()
-                    #     all_results.append(my_data)
-                    #     print("my_Data",my_data)
-
-                    # print("Done!")
-                    # print(all_results)
-                    # red.set(str(all_results[0]['position']['price']), pickle.dumps(all_results))
-
-
-                    # without threads implementation
-
-                    # check where is the price of the position from the entry
-                    # last_price = get_last_price_ticker(symbolredis)
-                    # if float(last_price)>=float(data['position']['price']):
-                    #     price_state ="ETOP"#above the entry
-                    # else:
-                    #     price_state="ELOW"#below the entry
 
                     all_results =[]
                     for user in users:
@@ -201,22 +103,23 @@ def user_counter():
                         api_secret=user.secret
                         leverage=20
                         amount=convert_usdt_to_base_asset(symbolredis, user.amount, leverage)
-                        cancelAllPositionBySymbol(user.api_key, user.api_secret,symbolredis )
-                        resp =send_orders(api_key,api_secret,amount, data, user.telegram_id)
-                        if resp is not None:
-                            all_results.append(resp)
+                        if data['position']['side']=='XL' or data['position']['side']=='XS':
+                            print("closing the symbol orders first")
+                            response =cancelAllPositionBySymbol(api_key, api_secret,symbolredis)
+                            if response:
+                                sendMessage(user.telegram_id, f"All orders and positions for {symbolredis} closed successfully.")
+                            else:
+                                sendMessage(user.telegram_id, f"You have no open positions for {symbolredis}")
+
+                        else:
+                            print("closing the symbol orders first")
+                            cancelAllPositionBySymbol(api_key, api_secret,symbolredis)
+                            print("Sending the order to binance")
+                            resp =send_orders(api_key,api_secret,amount, data, user.telegram_id)
+                            if resp is not None:
+                                all_results.append(resp)
                     
                     print(all_results)
-                    #save the orders to redis and start monitoring the price changes immediately
-                    # records = {
-                    #     "position_close_data":data['close_position_data'],
-                    #     "users":all_results
-                    # }
-                    # red.set(str(priceredis), pickle.dumps(records))
-                    # # task_instance = startPriceStreams.apply_async(args=(symbolredis, priceredis,price_state))
-                    # # print(task_instance)
-                    # print("Cache update successifully")
-
 
                     
         except Exception as e:
