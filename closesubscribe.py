@@ -41,11 +41,12 @@ def user_counter():
                 else:
                     # close order method
                     for user in users:
-                        response = cancelAllPositionBySymbol(user.key, user.secret, close_data['symbol'])
-                        if response:
-                            sendMessage(user.telegram_id, f"All orders and positions for {close_data['symbol']} closed successfully.")
-                        else:
-                            sendMessage(user.telegram_id, f"You have no open positions for {close_data['symbol']}")
+                        pass
+                        # response = cancelAllPositionBySymbol(user.key, user.secret, close_data['symbol'])
+                        # if response:
+                        #     sendMessage(user.telegram_id, f"All orders and positions for {close_data['symbol']} closed successfully.")
+                        # else:
+                        #     sendMessage(user.telegram_id, f"You have no open positions for {close_data['symbol']}")
 
                     print ("done" )   
             except Exception as e:

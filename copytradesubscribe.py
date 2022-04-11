@@ -105,11 +105,11 @@ def user_counter():
                         amount=convert_usdt_to_base_asset(symbolredis, user.amount, leverage)
                         if data['position']['side']=='XL' or data['position']['side']=='XS':
                             print("closing the symbol orders first")
-                            response =cancelAllPositionBySymbol(api_key, api_secret,symbolredis)
-                            if response:
-                                sendMessage(user.telegram_id, f"All orders and positions for {symbolredis} closed successfully.")
-                            else:
-                                sendMessage(user.telegram_id, f"You have no open positions for {symbolredis}")
+                            # response =cancelAllPositionBySymbol(api_key, api_secret,symbolredis)
+                            # if response:
+                            #     sendMessage(user.telegram_id, f"All orders and positions for {symbolredis} closed successfully.")
+                            # else:
+                            #     sendMessage(user.telegram_id, f"You have no open positions for {symbolredis}")
 
                         else:
                             print("closing the symbol orders first")
