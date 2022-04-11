@@ -62,18 +62,35 @@ def cancelAllPositionBySymbol(api_key, api_secret, symbol):
 
                 side = "SELL" if float(pos['positionAmt']) < 0 else "BUY"
 
-                closeSide= "SELL" if side=='BUY' else "SELL"
-                position_cancel_params={'symbol': symbol, 'type': 'MARKET', 'side':closeSide, 'quantity':float(pos['positionAmt'])}
-                cancel_ret = client.sendOrder(position_cancel_params)
-                print(cancel_ret)
-                processed.append(1)
-        
+            closeSide= "SELL" if side=='BUY' else "SELL"
+            position_cancel_params={'symbol': symbol, 'type': 'MARKET', 'side':closeSide, 'quantity':float(pos['positionAmt'])}
+            cancel_ret = client.sendOrder(position_cancel_params)
+            print(cancel_ret)
+            processed.append(1)
+    
         if processed == []:
             return False
 
         return True
     except Exception as e:
         return False
+def checkIfPositionExists(client, symbol):
+    position = client.checkPositionInfo()
+    if not position:
+        return False
+    processed =[]
+    for pos in position:
+        if float(pos['unRealizedProfit']) != float("0.00000000"):
+            if pos['symbol'] == symbol:
+                processed.append(1)
+                break
+    
+    if processed == []:
+        return False
+
+    return True
+              
+    
         
 def getAllOpenOrderSymbol(telegram_id):
     user = db.session.query(BotConfigsModel).filter_by(telegram_id=str(telegram_id)).first()

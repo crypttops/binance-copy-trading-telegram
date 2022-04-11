@@ -4,7 +4,7 @@ import pickle
 from pydoc_data.topics import topics
 import queue
 from typing import Dict
-from backend.operations.binance import cancelAllPositionBySymbol
+from backend.operations.binance import cancelAllPositionBySymbol, checkIfPositionExists
 from backend.operations.binance_futures import BinanceFuturesOps
 import threading
 from app import app
@@ -42,6 +42,9 @@ def send_orders(api_key, api_secret, qty, data, telegram_id):
     position_params = data["position"]
     print("the data, ", position_params)
     try:
+        if checkIfPositionExists(client, trade_symbol):
+            sendMessage(telegram_id, f"You already have a position for symbol {trade_symbol}" )
+
         resp = client.sendOrder(position_params)
         print("the response",resp)
         position_resp = f"[Binance Futures USDT-M]\n{position_params['symbol']}/USDT placed successfully"
