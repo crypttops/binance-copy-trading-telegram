@@ -71,6 +71,21 @@ def cancelAllPositionBySymbol(api_key, api_secret, symbol):
         return False
 
     return True
+def checkIfPositionExists(client, symbol):
+    position = client.checkPositionInfo()
+    if not position:
+        return False
+    processed =[]
+    for pos in position:
+        if float(pos['unRealizedProfit']) != float("0.00000000"):
+            if pos['symbol'] == symbol:
+                processed.append(1)
+                break
+    
+    if processed == []:
+        return False
+
+    return True
 
 def getAllOpenOrderSymbol(telegram_id):
     user = db.session.query(BotConfigsModel).filter_by(telegram_id=str(telegram_id)).first()
