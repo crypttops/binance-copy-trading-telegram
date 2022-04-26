@@ -44,6 +44,7 @@ def send_orders(api_key, api_secret, qty, data, telegram_id):
     try:
         if checkIfPositionExists(client, trade_symbol):
             sendMessage(telegram_id, f"You already have a position for symbol {trade_symbol}" )
+            return 1
 
         resp = client.sendOrder(position_params)
         print("the response",resp)
