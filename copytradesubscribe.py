@@ -3,6 +3,7 @@ from operator import pos
 import pickle
 from pydoc_data.topics import topics
 import queue
+from tracemalloc import stop
 from typing import Dict
 from backend.operations.binance import cancelAllPositionBySymbol, checkIfPositionExists
 from backend.operations.binance_futures import BinanceFuturesOps
@@ -21,6 +22,138 @@ redsub= redis.from_url(Config.REDES_SUB_URL)
 bot_token = Config.BOT_TOKEN
 
 Data =[]
+
+
+def CheckOpenPositions(client):
+    position = client.checkPositionInfo()
+    # print(position)
+    if not position:
+        return "You have no open positions"
+    processed = []
+    for pos in position:
+        if float(pos['unRealizedProfit']) != float("0.00000000"):
+            print("positon response", pos)
+            side = "SELL" if float(pos['positionAmt']) < 0 else "BUY"
+            data = {
+                "symbol": pos["symbol"],
+                "positionSide": pos["positionSide"],
+                "unRealizedProfit": pos["unRealizedProfit"],
+                "liquidationPrice": pos['liquidationPrice'],
+                "positionAmt": pos['positionAmt'],
+                "side": side
+            }
+            processed.append(data)
+
+    # if processed == []:
+    #     return "You have no open positions"
+
+    return {
+        "status": "OK",
+        "result": processed
+    }, 200
+
+def createSlTpOrder(client, orderDetails):
+    resp = CheckOpenPositions(client)
+    print("postiton sresp", resp)
+    for res in resp[0]['result']:
+        if res['symbol'] == orderDetails['symbol']:
+            orderDetails['quantity'] = client.round_decimals_down(
+                abs(float(res['positionAmt'])), client.qtyPrecision)
+            orderDetails['stopPrice'] = client.round_decimals_down(orderDetails['stopPrice'], client.pricePrecision)
+
+            try:
+                resp = client.futures_create_order(
+                    **orderDetails)
+                print(resp)
+                return resp, 200
+            except Exception as e:
+                resp = {
+                    "status": "fail",
+                    "result": str(e),
+                    "message": "error occured. Check parameters"
+                }
+                return resp, 400
+        break
+    return None
+
+        
+def tPSlHandler(params):
+    # Preparing the sl
+
+    if "takeProfit" in params:
+        tp =params["takeProfit"]
+    else:
+        tp=""
+    if "stopLoss" in params: 
+        sl = params["stopLoss"]
+    else:
+        sl =""
+    origparams = params.copy()
+    bot_message = "\n\n"
+    stop_side="buy" if params['side']=='sell' else "sell"
+
+    if tp !="":
+        last_price = get_last_price_ticker(params["symbol"])
+        
+        # Calculating the tp with leverage
+        tp = float(tp)/float(params['leverage'])
+
+        if origparams['side'] == "buy":
+            tp_price = ((100 + float(tp))/100)*float(last_price) 
+            tp_payload ={"symbol": params['symbol'],
+            "side": stop_side.upper(),
+            "type": "TAKE_PROFIT_MARKET",
+            "quantity": None,
+            "stopPrice": tp_price,
+            'timeInForce': 'GTC',
+            'reduceOnly': 'true'}
+            
+            params.update({"takeProfit":tp_payload})
+        elif origparams["side"] =="sell":
+            tp_price = ((100 - float(tp))/100)*float(last_price) 
+            tp_payload ={"symbol": params['symbol'],
+            "side": stop_side.upper(),
+            "type": "TAKE_PROFIT_MARKET",
+            "quantity": None,
+            "stopPrice": tp_price,
+            'timeInForce': 'GTC',
+            'reduceOnly': 'true'}
+            
+            params.update({"takeProfit":tp_payload})
+        
+    if sl !="":
+        #calculate the percentage of the price
+        last_price = get_last_price_ticker(params["symbol"])
+
+        sl = float(sl)/float(params['leverage'])
+        
+        if origparams['side'] == "buy":
+            sl_price = ((100 - float(sl))/100)*float(last_price) 
+            sl_payload ={"symbol": params['symbol'],
+            "side": stop_side.upper(),
+            "type": "STOP_MARKET",
+            "quantity": None,
+            "stopPrice": sl_price,
+            'timeInForce': 'GTC',
+            'reduceOnly': 'true'}
+            
+            params.update({"stopLoss":sl_payload})
+        elif origparams["side"] =="sell":
+            sl_price = ((100 + float(sl))/100)*float(last_price) 
+            sl_payload ={"symbol": params['symbol'],
+                "side": stop_side.upper(),
+                "type": "STOP_MARKET",
+                "quantity": None,
+                "stopPrice": sl_price,
+                'timeInForce': 'GTC',
+                'reduceOnly': 'true'}
+            
+            params.update({"stopLoss":sl_payload})
+    return params
+
+        
+
+
 
 
 
@@ -49,7 +182,15 @@ def send_orders(api_key, api_secret, qty, data, telegram_id):
         print("the response",resp)
         position_resp = f"[Binance Futures USDT-M]\n{position_params['symbol']}/USDT placed successfully"
         sendMessage(telegram_id, position_resp )
+
         # results = tps_n_sls(data, qty)
+        if 'takeProfit' in data:
+            tpresp= createSlTpOrder(client, data['takeProfit'])
+            print("tp_resp", tpresp)
+        if 'stopLoss' in data:
+            slresp = createSlTpOrder(client, data['stopLoss'])
+            print("sl_resp", slresp)
+
         results = {"key":api_key, "secret":api_secret,"telegram_id":telegram_id }
         return results
     except Exception as e:
@@ -66,63 +207,70 @@ def send_orders(api_key, api_secret, qty, data, telegram_id):
 def user_counter():
   pass
   sub = redsub.pubsub()
-  sub.subscribe('smart-signals-kucoin-order-2')
+  sub.subscribe('smart-signals-kucoin-order')
   for signal_data in sub.listen():
-    #   print("signal data", signal_data)
+      print("signal data", signal_data)
       if signal_data is not None and isinstance(signal_data, dict):
-
+        
         try:
             order_data = json.loads(signal_data['data'])
-            # print("orser data", order_data)
-            data= {"position":{
-                    "symbol":order_data['symbol'][:-1].upper(),
-                    "side":order_data["side"].upper(),
-                    "quantity":None,#to be inserted for a specific user while send order
-                    "type":order_data["type"].upper()
-                    }}
+            if order_data['channel_id'] == 1093054762:
+                #handle the symbol
+                print("intial", order_data)
+                order_data['symbol'] = order_data['symbol'][:-1].upper()
+                print("order_data", order_data)
+                # print("orser data", order_data)
+                data = tPSlHandler(order_data)
+                data.update({"position":{
+                        "symbol":order_data['symbol'],
+                        "side":order_data["side"].upper(),
+                        "quantity":None,#to be inserted for a specific user while send order
+                        "type":order_data["type"].upper()
+                        }
+                        
+                        })
 
-            print("position data", data)
-            # data = orderDataTemplateProcessor(order_data) #missing parts in amount, takeprofit amounts and stop loss amounts
-            symbolredis =data['position']['symbol']
-            # print(symbolredis)
-            # print(data)
-            # # priceredis = str(data['position']['price'])+"-"+str(data['position']['side'])
-            # priceredis = str(data['position']['price'])
-            # print("price redis key", priceredis)
 
-            print("The symbol redis", symbolredis)
-            if signal_data is not False:
-                with app.app_context():
-                    users = getAllUserConfigs()
-                    print(users)
-                if users ==[]:#if no data
-                    pass
-                else:
+                print("data", data)
+                # data = orderDataTemplateProcessor(order_data) #missing parts in amount, takeprofit amounts and stop loss amounts
+                symbolredis =data['position']['symbol']
 
-                    all_results =[]
-                    for user in users:
-                        # if user.telegram_id ==str(1499548874):
-                        api_key =user.key
-                        api_secret=user.secret
-                        leverage=20
-                        amount=convert_usdt_to_base_asset(symbolredis, user.amount, leverage)
-                        if data['position']['side']=='XL' or data['position']['side']=='XS':
-                            print("closing the symbol orders first")
-                            # response =cancelAllPositionBySymbol(api_key, api_secret,symbolredis)
-                            # if response:
-                            #     sendMessage(user.telegram_id, f"All orders and positions for {symbolredis} closed successfully.")
-                            # else:
-                            #     sendMessage(user.telegram_id, f"You have no open positions for {symbolredis}")
+                # Preparing the sl
+                print("The symbol redis", symbolredis)
+                if signal_data is not False:
+                    with app.app_context():
+                        users = getAllUserConfigs()
+                        print("The users", users)
+                    if users ==[]:#if no data
+                        pass
+                    else:
 
-                        else:
-                            print("closing the symbol orders first")
-                            cancelAllPositionBySymbol(api_key, api_secret,symbolredis)
-                            print("Sending the order to binance")
-                            resp =send_orders(api_key,api_secret,amount, data, user.telegram_id)
-                            if resp is not None:
-                                all_results.append(resp)
+                        all_results =[]
+                        for user in users:
+
+                            # if user.telegram_id ==str(1093054762):
+                                
+                            api_key =user.key
+                            api_secret=user.secret
+                            leverage=20
+                            amount=convert_usdt_to_base_asset(symbolredis, 1, leverage)
+                            if data['position']['side']=='XL' or data['position']['side']=='XS':
+                                print("closing the symbol orders first")
+                                # response =cancelAllPositionBySymbol(api_key, api_secret,symbolredis)
+                                # if response:
+                                #     sendMessage(user.telegram_id, f"All orders and positions for {symbolredis} closed successfully.")
+                                # else:
+                                #     sendMessage(user.telegram_id, f"You have no open positions for {symbolredis}")
+
+                            else:
+                                # print("closing the symbol orders first")
+                                # cancelAllPositionBySymbol(api_key, api_secret,symbolredis)
+                                # print("Sending the order to binance")
+                                resp =send_orders(api_key,api_secret,amount, data, user.telegram_id)
+                                if resp is not None:
+                                    all_results.append(resp)
                     
-                    print(all_results)
+                        print(all_results)
 
                     
         except Exception as e:
