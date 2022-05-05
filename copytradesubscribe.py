@@ -214,65 +214,65 @@ def user_counter():
         
         try:
             order_data = json.loads(signal_data['data'])
-            if order_data['channel_id'] == 1093054762:
-                #handle the symbol
-                print("intial", order_data)
-                order_data['symbol'] = order_data['symbol'][:-1].upper()
-                print("order_data", order_data)
-                # print("orser data", order_data)
-                data = tPSlHandler(order_data)
-                data.update({"position":{
-                        "symbol":order_data['symbol'],
-                        "side":order_data["side"].upper(),
-                        "quantity":None,#to be inserted for a specific user while send order
-                        "type":order_data["type"].upper()
-                        }
-                        
-                        })
-
-
-                print("data", data)
-                # data = orderDataTemplateProcessor(order_data) #missing parts in amount, takeprofit amounts and stop loss amounts
-                symbolredis =data['position']['symbol']
-
-                # Preparing the sl
-                print("The symbol redis", symbolredis)
-                if signal_data is not False:
-                    with app.app_context():
-                        users = getAllUserConfigs()
-                        print("The users", users)
-                    if users ==[]:#if no data
-                        pass
-                    else:
-
-                        all_results =[]
-                        for user in users:
-
-                            # if user.telegram_id ==str(1093054762):
-                                
-                            api_key =user.key
-                            api_secret=user.secret
-                            leverage=20
-                            amount=convert_usdt_to_base_asset(symbolredis, 1, leverage)
-                            if data['position']['side']=='XL' or data['position']['side']=='XS':
-                                print("closing the symbol orders first")
-                                # response =cancelAllPositionBySymbol(api_key, api_secret,symbolredis)
-                                # if response:
-                                #     sendMessage(user.telegram_id, f"All orders and positions for {symbolredis} closed successfully.")
-                                # else:
-                                #     sendMessage(user.telegram_id, f"You have no open positions for {symbolredis}")
-
-                            else:
-                                # print("closing the symbol orders first")
-                                # cancelAllPositionBySymbol(api_key, api_secret,symbolredis)
-                                # print("Sending the order to binance")
-                                resp =send_orders(api_key,api_secret,amount, data, user.telegram_id)
-                                if resp is not None:
-                                    all_results.append(resp)
+          
+            #handle the symbol
+            print("intial", order_data)
+            order_data['symbol'] = order_data['symbol'][:-1].upper()
+            print("order_data", order_data)
+            # print("orser data", order_data)
+            data = tPSlHandler(order_data)
+            data.update({"position":{
+                    "symbol":order_data['symbol'],
+                    "side":order_data["side"].upper(),
+                    "quantity":None,#to be inserted for a specific user while send order
+                    "type":order_data["type"].upper()
+                    }
                     
-                        print(all_results)
+                    })
 
-                    
+
+            print("data", data)
+            # data = orderDataTemplateProcessor(order_data) #missing parts in amount, takeprofit amounts and stop loss amounts
+            symbolredis =data['position']['symbol']
+
+            # Preparing the sl
+            print("The symbol redis", symbolredis)
+            if signal_data is not False:
+                with app.app_context():
+                    users = getAllUserConfigs()
+                    print("The users", users)
+                if users ==[]:#if no data
+                    pass
+                else:
+
+                    all_results =[]
+                    for user in users:
+
+                        # if user.telegram_id ==str(1093054762):
+                            
+                        api_key =user.key
+                        api_secret=user.secret
+                        leverage=20
+                        amount=convert_usdt_to_base_asset(symbolredis, 1, leverage)
+                        if data['position']['side']=='XL' or data['position']['side']=='XS':
+                            print("closing the symbol orders first")
+                            # response =cancelAllPositionBySymbol(api_key, api_secret,symbolredis)
+                            # if response:
+                            #     sendMessage(user.telegram_id, f"All orders and positions for {symbolredis} closed successfully.")
+                            # else:
+                            #     sendMessage(user.telegram_id, f"You have no open positions for {symbolredis}")
+
+                        else:
+                            # print("closing the symbol orders first")
+                            # cancelAllPositionBySymbol(api_key, api_secret,symbolredis)
+                            # print("Sending the order to binance")
+                            resp =send_orders(api_key,api_secret,amount, data, user.telegram_id)
+                            if resp is not None:
+                                all_results.append(resp)
+                
+                    print(all_results)
+
+                
         except Exception as e:
           print("error found", str(e))
 
