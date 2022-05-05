@@ -208,7 +208,7 @@ def send_orders(api_key, api_secret, qty, data, telegram_id):
 def user_counter():
   pass
   sub = redsub.pubsub()
-  sub.subscribe('smart-signals-kucoin-order')
+  sub.subscribe('smart-signals-kucoin-order-3')
   for signal_data in sub.listen():
       print("signal data", signal_data)
       if signal_data is not None and isinstance(signal_data, dict):
