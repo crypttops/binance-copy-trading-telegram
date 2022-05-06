@@ -89,7 +89,7 @@ def tPSlHandler(params):
     else:
         sl =""
     origparams = params.copy()
-    leverage=20 if params['leverage']== None else params[leverage]
+    leverage=20 if params['leverage']== None else leverage
     bot_message = "\n\n"
     stop_side="buy" if params['side']=='sell' else "sell"
     print("original params", origparams)
