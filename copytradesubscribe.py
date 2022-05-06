@@ -185,12 +185,12 @@ def send_orders(api_key, api_secret, qty, data, telegram_id):
         sendMessage(telegram_id, position_resp )
 
         # results = tps_n_sls(data, qty)
-        if 'takeProfit' in data:
-            tpresp= createSlTpOrder(client, data['takeProfit'])
-            print("tp_resp", tpresp)
-        if 'stopLoss' in data:
-            slresp = createSlTpOrder(client, data['stopLoss'])
-            print("sl_resp", slresp)
+        # if 'takeProfit' in data:
+        #     tpresp= createSlTpOrder(client, data['takeProfit'])
+        #     print("tp_resp", tpresp)
+        # if 'stopLoss' in data:
+        #     slresp = createSlTpOrder(client, data['stopLoss'])
+        #     print("sl_resp", slresp)
 
         results = {"key":api_key, "secret":api_secret,"telegram_id":telegram_id }
         return results
@@ -226,7 +226,8 @@ def user_counter():
                     "symbol":order_data['symbol'],
                     "side":order_data["side"].upper(),
                     "quantity":None,#to be inserted for a specific user while send order
-                    "type":order_data["type"].upper()
+                    "type":order_data["type"].upper(),
+                    "price":order_data["price"]
                     }
                     
                     })
@@ -253,8 +254,8 @@ def user_counter():
                             
                         api_key =user.key
                         api_secret=user.secret
-                        leverage=20
-                        amount=convert_usdt_to_base_asset(symbolredis, 1, leverage)
+                        leverage=user.leverage
+                        amount=convert_usdt_to_base_asset(symbolredis, user.amount, leverage)
                         if data['position']['side']=='XL' or data['position']['side']=='XS':
                             print("closing the symbol orders first")
                             # response =cancelAllPositionBySymbol(api_key, api_secret,symbolredis)
