@@ -91,7 +91,7 @@ def tPSlHandler(params):
     origparams = params.copy()
     bot_message = "\n\n"
     stop_side="buy" if params['side']=='sell' else "sell"
-
+    print("original params", origparams)
     if tp !="":
         last_price = get_last_price_ticker(params["symbol"])
         
@@ -99,7 +99,11 @@ def tPSlHandler(params):
         tp = float(tp)/float(params['leverage'])
 
         if origparams['side'] == "buy":
-            tp_price = ((100 + float(tp))/100)*float(last_price) 
+            if "signal" in origparams:
+
+                tp_price = params["takeProfit"]   
+            else:
+                tp_price = ((100 + float(tp))/100)*float(last_price)  
             tp_payload ={"symbol": params['symbol'],
             "side": stop_side.upper(),
             "type": "TAKE_PROFIT_MARKET",
@@ -110,7 +114,10 @@ def tPSlHandler(params):
             
             params.update({"takeProfit":tp_payload})
         elif origparams["side"] =="sell":
-            tp_price = ((100 - float(tp))/100)*float(last_price) 
+            if "signal" in origparams:
+                tp_price = params["takeProfit"]  
+            else:
+                tp_price = ((100 - float(tp))/100)*float(last_price) 
             tp_payload ={"symbol": params['symbol'],
             "side": stop_side.upper(),
             "type": "TAKE_PROFIT_MARKET",
@@ -124,11 +131,14 @@ def tPSlHandler(params):
     if sl !="":
         #calculate the percentage of the price
         last_price = get_last_price_ticker(params["symbol"])
-
+    
         sl = float(sl)/float(params['leverage'])
         
         if origparams['side'] == "buy":
-            sl_price = ((100 - float(sl))/100)*float(last_price) 
+            if "signal" in origparams:
+                sl_price = params["stopLoss"]
+            else:
+                sl_price = ((100 - float(sl))/100)*float(last_price) 
             sl_payload ={"symbol": params['symbol'],
             "side": stop_side.upper(),
             "type": "STOP_MARKET",
@@ -139,7 +149,10 @@ def tPSlHandler(params):
             
             params.update({"stopLoss":sl_payload})
         elif origparams["side"] =="sell":
-            sl_price = ((100 + float(sl))/100)*float(last_price) 
+            if "signal" in origparams:
+                sl_price = params["stopLoss"]
+            else:
+                sl_price = ((100 + float(sl))/100)*float(last_price) 
             sl_payload ={"symbol": params['symbol'],
                 "side": stop_side.upper(),
                 "type": "STOP_MARKET",
@@ -181,16 +194,29 @@ def send_orders(api_key, api_secret, qty, data, telegram_id):
 
         resp = client.sendOrder(position_params)
         print("the response",resp)
-        position_resp = f"[Binance Futures USDT-M]\n{position_params['symbol']}/USDT placed successfully"
+        position_resp = f"[Binance Futures USDT-M]\n{position_params['symbol']}/USDT Order placed successfully"
         sendMessage(telegram_id, position_resp )
 
         # results = tps_n_sls(data, qty)
-        # if 'takeProfit' in data:
-        #     tpresp= createSlTpOrder(client, data['takeProfit'])
-        #     print("tp_resp", tpresp)
-        # if 'stopLoss' in data:
-        #     slresp = createSlTpOrder(client, data['stopLoss'])
-        #     print("sl_resp", slresp)
+        if 'takeProfit' in data:
+            tpresp= createSlTpOrder(client, data['takeProfit'])
+            if 'orderId' in tpresp:
+                tp_resp = f"[Binance Futures USDT-M]\n{position_params['symbol']}/USDT Takeprofit Order placed successfully"
+                sendMessage(telegram_id, tp_resp )
+            else:
+                tp_resp = f"[Binance Futures USDT-M]\n{position_params['symbol']}/USDT Takeprofit Order failed"
+                sendMessage(telegram_id, tp_resp )
+
+            print("tp_resp", tpresp)
+        if 'stopLoss' in data:
+            slresp = createSlTpOrder(client, data['stopLoss'])
+            print("sl_resp", slresp)
+            if 'orderId' in slresp:
+                sl_resp = f"[Binance Futures USDT-M]\n{position_params['symbol']}/USDT StopLoss Order placed successfully"
+                sendMessage(telegram_id, sl_resp )
+            else:
+                sl_resp = f"[Binance Futures USDT-M]\n{position_params['symbol']}/USDT StopLoss Order failed"
+                sendMessage(telegram_id, sl_resp )
 
         results = {"key":api_key, "secret":api_secret,"telegram_id":telegram_id }
         return results
@@ -268,9 +294,10 @@ def user_counter():
                             # print("closing the symbol orders first")
                             # cancelAllPositionBySymbol(api_key, api_secret,symbolredis)
                             # print("Sending the order to binance")
-                            resp =send_orders(api_key,api_secret,amount, data, user.telegram_id)
-                            if resp is not None:
-                                all_results.append(resp)
+                            if user.telegram_id == str(1499548874):
+                                resp =send_orders(api_key,api_secret,amount, data, user.telegram_id)
+                                if resp is not None:
+                                    all_results.append(resp)
                 
                     print(all_results)
 
