@@ -295,10 +295,10 @@ def user_counter():
                             # print("closing the symbol orders first")
                             # cancelAllPositionBySymbol(api_key, api_secret,symbolredis)
                             # print("Sending the order to binance")
-                            if user.telegram_id == str(1499548874):
-                                resp =send_orders(api_key,api_secret,amount, data, user.telegram_id)
-                                if resp is not None:
-                                    all_results.append(resp)
+                            
+                            resp =send_orders(api_key,api_secret,amount, data, user.telegram_id)
+                            if resp is not None:
+                                all_results.append(resp)
                 
                     print(all_results)
 
