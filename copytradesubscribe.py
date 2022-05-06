@@ -89,6 +89,7 @@ def tPSlHandler(params):
     else:
         sl =""
     origparams = params.copy()
+    leverage=20 if params['leverage']== None else params[leverage]
     bot_message = "\n\n"
     stop_side="buy" if params['side']=='sell' else "sell"
     print("original params", origparams)
@@ -96,7 +97,7 @@ def tPSlHandler(params):
         last_price = get_last_price_ticker(params["symbol"])
         
         # Calculating the tp with leverage
-        tp = float(tp)/float(params['leverage'])
+        tp = float(tp)/float(leverage)
 
         if origparams['side'] == "buy":
             if "signal" in origparams:
@@ -132,7 +133,7 @@ def tPSlHandler(params):
         #calculate the percentage of the price
         last_price = get_last_price_ticker(params["symbol"])
     
-        sl = float(sl)/float(params['leverage'])
+        sl = float(sl)/float(leverage)
         
         if origparams['side'] == "buy":
             if "signal" in origparams:
