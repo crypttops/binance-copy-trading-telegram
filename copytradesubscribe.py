@@ -52,29 +52,49 @@ def CheckOpenPositions(client):
         "result": processed
     }, 200
 
-def createSlTpOrder(client, orderDetails):
-    resp = CheckOpenPositions(client)
-    print("postiton sresp", resp)
-    for res in resp[0]['result']:
-        if res['symbol'] == orderDetails['symbol']:
-            orderDetails['quantity'] = client.round_decimals_down(
-                abs(float(res['positionAmt'])), client.qtyPrecision)
-            orderDetails['stopPrice'] = client.round_decimals_down(orderDetails['stopPrice'], client.pricePrecision)
+# def createSlTpOrder(client, orderDetails):
+#     resp = CheckOpenPositions(client)
+#     print("postiton sresp", resp)
+#     for res in resp[0]['result']:
+#         if res['symbol'] == orderDetails['symbol']:
+#             orderDetails['quantity'] = client.round_decimals_down(
+#                 abs(float(res['positionAmt'])), client.qtyPrecision)
+#             orderDetails['stopPrice'] = client.round_decimals_down(orderDetails['stopPrice'], client.pricePrecision)
 
-            try:
-                resp = client.futures_create_order(
-                    **orderDetails)
-                print(resp)
-                return resp, 200
-            except Exception as e:
-                resp = {
-                    "status": "fail",
-                    "result": str(e),
-                    "message": "error occured. Check parameters"
-                }
-                return resp, 400
-        break
-    return None
+#             try:
+#                 resp = client.futures_create_order(
+#                     **orderDetails)
+#                 print(resp)
+#                 return resp, 200
+#             except Exception as e:
+#                 resp = {
+#                     "status": "fail",
+#                     "result": str(e),
+#                     "message": "error occured. Check parameters"
+#                 }
+#                 return resp, 400
+#         break
+#     return None
+
+def createSlTpOrder(client, orderDetails):
+        
+    orderDetails['stopPrice'] = client.round_decimals_down(orderDetails['stopPrice'], client.pricePrecision)
+    orderDetails['quantity'] =client.round_decimals_down(orderDetails["quantity"], client.qtyPrecision)
+
+    try:
+        resp = client.futures_create_order(
+            **orderDetails)
+        print(resp)
+        return resp, 200
+    except Exception as e:
+        resp = {
+            "status": "fail",
+            "result": str(e),
+            "message": "error occured. Check parameters"
+        }
+        return resp, 400
+  
+    
 
         
 def tPSlHandler(params):
@@ -183,6 +203,8 @@ def send_orders(api_key, api_secret, qty, data, telegram_id):
     client = BinanceFuturesOps(api_key=api_key, api_secret=api_secret, trade_symbol=trade_symbol)
    
     data["position"]["quantity"]=float(qty)
+    data["takeProfit"]["quantity"]=float(qty)
+    data["stopLoss"]["quantity"]=float(qty)
     print("Data after updating the quantiy", data)
     
     # send the position order
@@ -282,7 +304,7 @@ def user_counter():
                         api_key =user.key
                         api_secret=user.secret
                         leverage=user.leverage
-                        amount=convert_usdt_to_base_asset(symbolredis, user.amount, leverage)
+                        amount=convert_usdt_to_base_asset(symbolredis,5, leverage)
                         if data['position']['side']=='XL' or data['position']['side']=='XS':
                             print("closing the symbol orders first")
                             # response =cancelAllPositionBySymbol(api_key, api_secret,symbolredis)
