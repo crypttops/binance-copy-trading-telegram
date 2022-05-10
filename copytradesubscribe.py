@@ -109,7 +109,7 @@ def tPSlHandler(params):
     else:
         sl =""
     origparams = params.copy()
-    leverage=20 if params['leverage']== None else leverage
+    leverage=20 if params['leverage']== None else params['leverage']
     bot_message = "\n\n"
     stop_side="buy" if params['side']=='sell' else "sell"
     print("original params", origparams)
@@ -304,7 +304,7 @@ def user_counter():
                         api_key =user.key
                         api_secret=user.secret
                         leverage=user.leverage
-                        amount=convert_usdt_to_base_asset(symbolredis,5, leverage)
+                        amount=convert_usdt_to_base_asset(symbolredis,user.amount, leverage)
                         if data['position']['side']=='XL' or data['position']['side']=='XS':
                             print("closing the symbol orders first")
                             # response =cancelAllPositionBySymbol(api_key, api_secret,symbolredis)
