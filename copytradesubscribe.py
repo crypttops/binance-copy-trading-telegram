@@ -122,7 +122,8 @@ def tPSlHandler(params):
         if origparams['side'] == "buy":
             if "signal" in origparams:
 
-                tp_price = params["takeProfit"]   
+                # tp_price = params["takeProfit"] 
+                tp_price = ((100 + float(tp))/100)*float(last_price)    
             else:
                 tp_price = ((100 + float(tp))/100)*float(last_price)  
             tp_payload ={"symbol": params['symbol'],
