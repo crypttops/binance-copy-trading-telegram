@@ -12,6 +12,7 @@ from app import app
 from backend.operations.bot import sendMessage
 from backend.operations.db import getAllUserConfigs
 import redis
+from backend.operations.pnlcalc import getTpEntryPrice
 from backend.operations.price import convert_usdt_to_base_asset, get_last_price_ticker
 
 from config import Config
@@ -117,13 +118,15 @@ def tPSlHandler(params):
         last_price = get_last_price_ticker(params["symbol"])
         
         # Calculating the tp with leverage
-        tp = float(tp)/float(leverage)
+        # tp = float(tp)/float(leverage)
+        tp = float(tp)
 
         if origparams['side'] == "buy":
             if "signal" in origparams:
 
                 # tp_price = params["takeProfit"] 
-                tp_price = ((100 + float(tp))/100)*float(last_price)    
+                # tp_price = ((100 + float(tp))/100)*float(last_price)
+                tp_price = getTpEntryPrice(origparams['side'],entry_price, tp,leverage)    
             else:
                 tp_price = ((100 + float(tp))/100)*float(last_price)  
             tp_payload ={"symbol": params['symbol'],
