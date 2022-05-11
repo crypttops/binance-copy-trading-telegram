@@ -120,10 +120,8 @@ def tPSlHandler(params):
         # tp = float(tp)/float(leverage)
         tp = float(tp)
         leverage = 20
-        entry_price =origparams['price'] if 'price' in origparams else last_price
-        print("the entry", entry_price)
-        print("leverage", leverage)
-
+        entry_price = last_price if 'price' not in origparams else origparams['price'] 
+        
         if origparams['side'] == "buy":
             if "signal" in origparams:
                
@@ -282,15 +280,26 @@ def user_counter():
             # print("orser data", order_data)
             data = tPSlHandler(order_data)
             print("Tje dea", data)
-            data.update({"position":{
-                    "symbol":order_data['symbol'],
-                    "side":order_data["side"].upper(),
-                    "quantity":None,#to be inserted for a specific user while send order
-                    "type":order_data["type"].upper(),
-                    "price":order_data["price"]
-                    }
-                    
-                    })
+            if order_data["type"].upper() =="LIMIT":
+                data.update({"position":{
+                        "symbol":order_data['symbol'],
+                        "side":order_data["side"].upper(),
+                        "quantity":None,#to be inserted for a specific user while send order
+                        "type":order_data["type"].upper(),
+                        "price":order_data["price"] 
+                        }
+                        
+                        })
+            else:
+                 data.update({"position":{
+                        "symbol":order_data['symbol'],
+                        "side":order_data["side"].upper(),
+                        "quantity":None,#to be inserted for a specific user while send order
+                        "type":order_data["type"].upper(),
+                        }
+                        
+                        })
+
 
 
             print("data", data)
@@ -328,10 +337,10 @@ def user_counter():
                             # print("closing the symbol orders first")
                             # cancelAllPositionBySymbol(api_key, api_secret,symbolredis)
                             # print("Sending the order to binance")
-                            if user.telegram_id == str(1499548874):
-                                resp =send_orders(api_key,api_secret,amount, data, user.telegram_id)
-                                if resp is not None:
-                                    all_results.append(resp)
+                            
+                            resp =send_orders(api_key,api_secret,amount, data, user.telegram_id)
+                            if resp is not None:
+                                all_results.append(resp)
                 
                     print(all_results)
 
