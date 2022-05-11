@@ -18,11 +18,11 @@ def pnlCalc(config):
     return unrealized_PNL, perc_roe
 
 def getTpEntryPrice(order_side, entry_price, perc_profit, leverage):
-    IMR = 1/leverage
+    IMR = 1/float(leverage)
     contract_multiplier=1
     order_direction = 1 if order_side.lower()=='buy' else -1
-    N = entry_price
-    D = (perc_profit*contract_multiplier*IMR)/(order_direction*100) -1
+    N = float(entry_price)
+    D = (float(perc_profit)*float(contract_multiplier)*IMR)/(order_direction*100) -1
     tp_price =(N/D)/(-1)
     return tp_price
     

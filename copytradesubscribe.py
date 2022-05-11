@@ -110,25 +110,30 @@ def tPSlHandler(params):
     else:
         sl =""
     origparams = params.copy()
-    leverage=20 if params['leverage']== None else leverage
+    leverage=20 if params['leverage']== None else params['leverage']
     bot_message = "\n\n"
     stop_side="buy" if params['side']=='sell' else "sell"
     print("original params", origparams)
     if tp !="":
         last_price = get_last_price_ticker(params["symbol"])
-        
         # Calculating the tp with leverage
         # tp = float(tp)/float(leverage)
         tp = float(tp)
+        leverage = 20
+        entry_price =origparams['price'] if 'price' in origparams else last_price
+        print("the entry", entry_price)
+        print("leverage", leverage)
 
         if origparams['side'] == "buy":
             if "signal" in origparams:
-
+               
                 # tp_price = params["takeProfit"] 
                 # tp_price = ((100 + float(tp))/100)*float(last_price)
-                tp_price = getTpEntryPrice(origparams['side'],entry_price, tp,leverage)    
+                tp_price = getTpEntryPrice(origparams['side'],entry_price, tp,leverage)
+                print("the tp price",tp_price)
             else:
-                tp_price = ((100 + float(tp))/100)*float(last_price)  
+                # tp_price = ((100 + float(tp))/100)*float(last_price)  
+                tp_price = getTpEntryPrice(origparams['side'],entry_price, tp,leverage) 
             tp_payload ={"symbol": params['symbol'],
             "side": stop_side.upper(),
             "type": "TAKE_PROFIT_MARKET",
@@ -136,13 +141,15 @@ def tPSlHandler(params):
             "stopPrice": tp_price,
             'timeInForce': 'GTC',
             'reduceOnly': 'true'}
-            
+            print("the oajkdshsdius", params)
             params.update({"takeProfit":tp_payload})
         elif origparams["side"] =="sell":
             if "signal" in origparams:
-                tp_price = params["takeProfit"]  
+                # tp_price = params["takeProfit"]
+                tp_price = getTpEntryPrice(origparams['side'],entry_price, tp,leverage)   
             else:
-                tp_price = ((100 - float(tp))/100)*float(last_price) 
+                # tp_price = ((100 - float(tp))/100)*float(last_price) 
+                tp_price = getTpEntryPrice(origparams['side'],entry_price, tp,leverage) 
             tp_payload ={"symbol": params['symbol'],
             "side": stop_side.upper(),
             "type": "TAKE_PROFIT_MARKET",
@@ -150,7 +157,6 @@ def tPSlHandler(params):
             "stopPrice": tp_price,
             'timeInForce': 'GTC',
             'reduceOnly': 'true'}
-            
             params.update({"takeProfit":tp_payload})
         
     if sl !="":
@@ -275,6 +281,7 @@ def user_counter():
             print("order_data", order_data)
             # print("orser data", order_data)
             data = tPSlHandler(order_data)
+            print("Tje dea", data)
             data.update({"position":{
                     "symbol":order_data['symbol'],
                     "side":order_data["side"].upper(),
@@ -321,10 +328,10 @@ def user_counter():
                             # print("closing the symbol orders first")
                             # cancelAllPositionBySymbol(api_key, api_secret,symbolredis)
                             # print("Sending the order to binance")
-                            
-                            resp =send_orders(api_key,api_secret,amount, data, user.telegram_id)
-                            if resp is not None:
-                                all_results.append(resp)
+                            if user.telegram_id == str(1499548874):
+                                resp =send_orders(api_key,api_secret,amount, data, user.telegram_id)
+                                if resp is not None:
+                                    all_results.append(resp)
                 
                     print(all_results)
 
