@@ -230,7 +230,7 @@ def send_orders(api_key, api_secret, qty, data, telegram_id):
 
         # results = tps_n_sls(data, qty)
         if 'takeProfit' in data:
-            tpresp= createSlTpOrder(client, data['takeProfit'])
+            tpresp, status = createSlTpOrder(client, data['takeProfit'])
             if 'orderId' in tpresp:
                 tp_resp = f"[Binance Futures USDT-M]\n{position_params['symbol']}/USDT Takeprofit Order placed successfully"
                 sendMessage(telegram_id, tp_resp )
@@ -240,7 +240,7 @@ def send_orders(api_key, api_secret, qty, data, telegram_id):
 
             print("tp_resp", tpresp)
         if 'stopLoss' in data:
-            slresp = createSlTpOrder(client, data['stopLoss'])
+            slresp, status = createSlTpOrder(client, data['stopLoss'])
             print("sl_resp", slresp)
             if 'orderId' in slresp:
                 sl_resp = f"[Binance Futures USDT-M]\n{position_params['symbol']}/USDT StopLoss Order placed successfully"
