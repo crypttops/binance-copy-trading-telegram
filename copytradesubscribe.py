@@ -17,11 +17,12 @@ from backend.operations.price import convert_usdt_to_base_asset, get_last_price_
 
 from config import Config
 from tasks import startPriceStreams
-
+from backend.utils import logging
 red = redis.from_url(Config.REDIS_URL)
 redsub= redis.from_url(Config.REDES_SUB_URL)
 bot_token = Config.BOT_TOKEN
 
+logger = logging.GetLogger(__name__)
 Data =[]
 
 
@@ -52,30 +53,6 @@ def CheckOpenPositions(client):
         "status": "OK",
         "result": processed
     }, 200
-
-# def createSlTpOrder(client, orderDetails):
-#     resp = CheckOpenPositions(client)
-#     print("postiton sresp", resp)
-#     for res in resp[0]['result']:
-#         if res['symbol'] == orderDetails['symbol']:
-#             orderDetails['quantity'] = client.round_decimals_down(
-#                 abs(float(res['positionAmt'])), client.qtyPrecision)
-#             orderDetails['stopPrice'] = client.round_decimals_down(orderDetails['stopPrice'], client.pricePrecision)
-
-#             try:
-#                 resp = client.futures_create_order(
-#                     **orderDetails)
-#                 print(resp)
-#                 return resp, 200
-#             except Exception as e:
-#                 resp = {
-#                     "status": "fail",
-#                     "result": str(e),
-#                     "message": "error occured. Check parameters"
-#                 }
-#                 return resp, 400
-#         break
-#     return None
 
 def createSlTpOrder(client, orderDetails):
         
@@ -113,11 +90,10 @@ def tPSlHandler(params):
     leverage=20 if params['leverage']== None else params['leverage']
     bot_message = "\n\n"
     stop_side="buy" if params['side']=='sell' else "sell"
-    print("original params", origparams)
+
     if tp !="":
         last_price = get_last_price_ticker(params["symbol"])
         # Calculating the tp with leverage
-        # tp = float(tp)/float(leverage)
         tp = float(tp)
         leverage = 20
         entry_price = last_price if 'price' not in origparams else origparams['price'] 
@@ -128,10 +104,10 @@ def tPSlHandler(params):
                 # tp_price = params["takeProfit"] 
                 # tp_price = ((100 + float(tp))/100)*float(last_price)
                 tp_price = getTpEntryPrice(origparams['side'],entry_price, tp,leverage)
-                print("the tp price",tp_price)
             else:
                 # tp_price = ((100 + float(tp))/100)*float(last_price)  
                 tp_price = getTpEntryPrice(origparams['side'],entry_price, tp,leverage) 
+
             tp_payload ={"symbol": params['symbol'],
             "side": stop_side.upper(),
             "type": "TAKE_PROFIT_MARKET",
@@ -139,7 +115,7 @@ def tPSlHandler(params):
             "stopPrice": tp_price,
             'timeInForce': 'GTC',
             'reduceOnly': 'true'}
-            print("the oajkdshsdius", params)
+            
             params.update({"takeProfit":tp_payload})
         elif origparams["side"] =="sell":
             if "signal" in origparams:
@@ -148,6 +124,7 @@ def tPSlHandler(params):
             else:
                 # tp_price = ((100 - float(tp))/100)*float(last_price) 
                 tp_price = getTpEntryPrice(origparams['side'],entry_price, tp,leverage) 
+
             tp_payload ={"symbol": params['symbol'],
             "side": stop_side.upper(),
             "type": "TAKE_PROFIT_MARKET",
@@ -168,6 +145,7 @@ def tPSlHandler(params):
                 sl_price = params["stopLoss"]
             else:
                 sl_price = ((100 - float(sl))/100)*float(last_price) 
+
             sl_payload ={"symbol": params['symbol'],
             "side": stop_side.upper(),
             "type": "STOP_MARKET",
@@ -181,7 +159,8 @@ def tPSlHandler(params):
             if "signal" in origparams:
                 sl_price = params["stopLoss"]
             else:
-                sl_price = ((100 + float(sl))/100)*float(last_price) 
+                sl_price = ((100 + float(sl))/100)*float(last_price)
+
             sl_payload ={"symbol": params['symbol'],
                 "side": stop_side.upper(),
                 "type": "STOP_MARKET",
@@ -200,13 +179,10 @@ def tPSlHandler(params):
 
 
 def send_orders(api_key, api_secret, qty, data, telegram_id):
-    print(f"Executing order for {telegram_id}")
-    print("Data in send order", data)
-    print("quantity", qty)
+   
     """
     #Order template
     """
-    print(data)
     trade_symbol= data['position']['symbol']
     client = BinanceFuturesOps(api_key=api_key, api_secret=api_secret, trade_symbol=trade_symbol)
    
@@ -214,18 +190,19 @@ def send_orders(api_key, api_secret, qty, data, telegram_id):
     data["takeProfit"]["quantity"]=float(qty)
     data["stopLoss"]["quantity"]=float(qty)
     print("Data after updating the quantiy", data)
-    
+
+    logger.info(f"{telegram_id}-Order payload- {data}")    
     # send the position order
     position_params = data["position"]
-    print("the data, ", position_params)
     try:
         if checkIfPositionExists(client, trade_symbol):
             sendMessage(telegram_id, f"You already have a position for symbol {trade_symbol}" )
+            logger.info(f"{telegram_id}  You already have a position for symbol {trade_symbol}")
             return 1
 
         resp = client.sendOrder(position_params)
-        print("the response",resp)
         position_resp = f"[Binance Futures USDT-M]\n{position_params['symbol']}/USDT Order placed successfully"
+        logger.info(f"{telegram_id} - {position_resp}")
         sendMessage(telegram_id, position_resp )
 
         # results = tps_n_sls(data, qty)
@@ -233,26 +210,27 @@ def send_orders(api_key, api_secret, qty, data, telegram_id):
             tpresp, status = createSlTpOrder(client, data['takeProfit'])
             if 'orderId' in tpresp:
                 tp_resp = f"[Binance Futures USDT-M]\n{position_params['symbol']}/USDT Takeprofit Order placed successfully"
+                logger.info(f"{telegram_id} - {tp_resp}")
                 sendMessage(telegram_id, tp_resp )
             else:
                 tp_resp = f"[Binance Futures USDT-M]\n{position_params['symbol']}/USDT Takeprofit Order failed"
+                logger.error({telegram_id} - {tpresp})
                 sendMessage(telegram_id, tp_resp )
 
-            print("tp_resp", tpresp)
         if 'stopLoss' in data:
             slresp, status = createSlTpOrder(client, data['stopLoss'])
-            print("sl_resp", slresp)
             if 'orderId' in slresp:
                 sl_resp = f"[Binance Futures USDT-M]\n{position_params['symbol']}/USDT StopLoss Order placed successfully"
-                sendMessage(telegram_id, sl_resp )
-            else:
-                sl_resp = f"[Binance Futures USDT-M]\n{position_params['symbol']}/USDT StopLoss Order failed"
+                logger.info(f"{telegram_id} - {sl_resp}")
                 sendMessage(telegram_id, sl_resp )
 
-        results = {"key":api_key, "secret":api_secret,"telegram_id":telegram_id }
-        return results
+            else:
+                sl_resp = f"[Binance Futures USDT-M]\n{position_params['symbol']}/USDT StopLoss Order failed"
+                logger.error(f"{telegram_id} - {slresp}")
+                sendMessage(telegram_id, sl_resp )
+        return "Done"
     except Exception as e:
-        print("The position Error", str(e))
+        logger.error(f"{telegram_id} - {str(e)}")
         position_resp=f"[Binance Futures USDT-M]\n{position_params['symbol']}/USDT Order Failed\nError:{str(e)}"
         sendMessage(telegram_id, position_resp )
         return None
@@ -267,19 +245,16 @@ def user_counter():
   sub = redsub.pubsub()
   sub.subscribe('smart-signals-kucoin-order-3')
   for signal_data in sub.listen():
-      print("signal data", signal_data)
       if signal_data is not None and isinstance(signal_data, dict):
         
         try:
             order_data = json.loads(signal_data['data'])
           
             #handle the symbol
-            print("intial", order_data)
             order_data['symbol'] = order_data['symbol'][:-1].upper()
-            print("order_data", order_data)
             # print("orser data", order_data)
             data = tPSlHandler(order_data)
-            print("Tje dea", data)
+            logger.info(f"TP SL Template data {data}")
             if order_data["type"].upper() =="LIMIT":
                 data.update({"position":{
                         "symbol":order_data['symbol'],
@@ -300,18 +275,15 @@ def user_counter():
                         
                         })
 
-
-
-            print("data", data)
+            logger.info(f"Template orders data {data}")
             # data = orderDataTemplateProcessor(order_data) #missing parts in amount, takeprofit amounts and stop loss amounts
             symbolredis =data['position']['symbol']
 
             # Preparing the sl
-            print("The symbol redis", symbolredis)
             if signal_data is not False:
                 with app.app_context():
                     users = getAllUserConfigs()
-                    print("The users", users)
+
                 if users ==[]:#if no data
                     pass
                 else:
@@ -326,7 +298,7 @@ def user_counter():
                         leverage=user.leverage
                         amount=convert_usdt_to_base_asset(symbolredis,5, leverage)
                         if data['position']['side']=='XL' or data['position']['side']=='XS':
-                            print("closing the symbol orders first")
+                            pass
                             # response =cancelAllPositionBySymbol(api_key, api_secret,symbolredis)
                             # if response:
                             #     sendMessage(user.telegram_id, f"All orders and positions for {symbolredis} closed successfully.")
@@ -338,15 +310,11 @@ def user_counter():
                             # cancelAllPositionBySymbol(api_key, api_secret,symbolredis)
                             # print("Sending the order to binance")
                             
-                            resp =send_orders(api_key,api_secret,amount, data, user.telegram_id)
-                            if resp is not None:
-                                all_results.append(resp)
-                
-                    print(all_results)
-
+                            send_orders(api_key,api_secret,amount, data, user.telegram_id)
+                            
                 
         except Exception as e:
-          print("error found", str(e))
+          logger.error(str(e))
 
 while True:
   user_counter() 
