@@ -216,7 +216,7 @@ def send_orders(api_key, api_secret, qty, data, telegram_id):
             else:
                 tp_resp = f"[Binance Futures USDT-M]\n{position_params['symbol']}/USDT Takeprofit Order failed"
                 sendMessage(telegram_id, tp_resp )
-                logger.error({telegram_id} - {str(tpresp)})
+                logger.error(f"{telegram_id} - {str(tpresp)}")
 
         if 'stopLoss' in data:
             slresp, status = createSlTpOrder(client, data['stopLoss'])
