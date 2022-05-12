@@ -296,7 +296,7 @@ def user_counter():
                         api_key =user.key
                         api_secret=user.secret
                         leverage=user.leverage
-                        amount=convert_usdt_to_base_asset(symbolredis,5, leverage)
+                        amount=convert_usdt_to_base_asset(symbolredis,user.amount, leverage)
                         if data['position']['side']=='XL' or data['position']['side']=='XS':
                             pass
                             # response =cancelAllPositionBySymbol(api_key, api_secret,symbolredis)
