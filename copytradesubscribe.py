@@ -142,7 +142,8 @@ def tPSlHandler(params):
         
         if origparams['side'] == "buy":
             if "signal" in origparams:
-                sl_price = params["stopLoss"]
+                # sl_price = params["stopLoss"]
+                sl_price = getTpEntryPrice(origparams['side'],entry_price, (sl*-1),leverage) 
             else:
                 # sl_price = ((100 - float(sl))/100)*float(last_price) 
                 sl_price = getTpEntryPrice(origparams['side'],entry_price, (sl*-1),leverage) 
@@ -158,7 +159,8 @@ def tPSlHandler(params):
             params.update({"stopLoss":sl_payload})
         elif origparams["side"] =="sell":
             if "signal" in origparams:
-                sl_price = params["stopLoss"]
+                # sl_price = params["stopLoss"]
+                sl_price = getTpEntryPrice(origparams['side'],entry_price, (sl*-1),leverage) 
             else:
                 # sl_price = ((100 + float(sl))/100)*float(last_price)
                 sl_price = getTpEntryPrice(origparams['side'],entry_price, (sl*-1),leverage) 
